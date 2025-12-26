@@ -27,7 +27,7 @@ export default function App() {
 
   const results = [
     { name: "Lionel Messi", amount: "65,00€", percent: 70 },
-    { name: "Cristiano Ronaldo", amount: "32,25€", percent: 35 },
+    { name: "Cristiano Ronaldo", amount: "32,25€", percent: 30 },
   ];
 
   return (
