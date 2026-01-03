@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.database.init_db import run_migrations
 from services.gpio.GPIOService import gpio_service
 from .routes import api_router
 from .settings import settings
@@ -25,6 +26,10 @@ logger.info(f"LOG_LEVEL={settings.LOG_LEVEL}")
 @asynccontextmanager
 async def lifespan(_):
     # Startup
+    logger.info("Running DB migrations...")
+    run_migrations()
+    logger.info("DB migrations done.")
+
     logger.info("Starting GPIO Service...")
     gpio_service.initialize(enable_gpio=settings.ENABLE_GPIO, pin_factory=settings.PIN_FACTORY)
     await gpio_service.start_background_task()
