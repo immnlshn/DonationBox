@@ -5,7 +5,6 @@ export default function VotingResultsChart({ results }) {
         <CandidateResultColumn
           key={candidate.name}
           name={candidate.name}
-          amount={candidate.amount}
           percent={candidate.percent}
         />
       ))}
@@ -13,14 +12,14 @@ export default function VotingResultsChart({ results }) {
   );
 }
 
-function CandidateResultColumn({ name, amount, percent }) {
+function CandidateResultColumn({ name, percent }) {
   const safePercent = Math.max(0, Math.min(100, Number(percent) || 0));
 
   return (
     <div className="candidate-result-column">
       <div className="bar">
         <div className="fill" style={{ height: `${safePercent}%` }}>
-          <span className="bar-label">{amount}</span>
+          <span className="bar-label">{safePercent}%</span>
         </div>
       </div>
       <span className="candidate-name">{name}</span>

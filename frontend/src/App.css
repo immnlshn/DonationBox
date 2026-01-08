@@ -1,401 +1,450 @@
-/* ---------- Main Layout ---------- */
-.main-page {
-  width: var(--page-width);
-  margin: 18px auto;
-  padding: 14px 14px 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+/* =========================
+   DonationBox – Clean v2
+   Weißer Hintergrund, klare Hierarchie,
+   wenig Boxen, CTA auffällig, Donations in EINER Linie (Pills)
+   ========================= */
+
+:root{
+  --bg: #fffffff;
+  --text: #0f172a;
+  --muted: #5b6b86;
+
+  --line: rgba(15, 23, 42, 0.10);
+
+  /* CTA (auffälligste Farbe) */
+  --cta: #ff6a3d;
+  --ctaText: #ffffff;
+
+  /* Balkenfarben bleiben */
+  --bar-a: #f2a900; /* gelb */
+  --bar-b: #1e88c8; /* blau */
+  --bar-track: rgba(15, 23, 42, 0.08);
+
+  /* Layout: hochkant / nicht zu breit */
+  --maxw: 760px;
 }
 
-/* Shared “card” feel */
-.donation-question,
-.donation-summary,
-.donation-target,
-.qr-code-info,
-.voting-results-chart {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(8px);
+*,
+*::before,
+*::after{ box-sizing:border-box; }
+
+html, body{ height:100%; }
+
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
 }
 
-/* ---------- 1) Question (HERO) ---------- */
-.donation-question {
-  text-align: center;
-  padding: 26px 22px;
-  position: relative;
-  overflow: hidden;
+/* ---------- overall width ---------- */
+.page{
+  width: min(var(--maxw), 94vw);
+  margin: 18px auto 28px;
 }
 
-.donation-question::before {
-  content: none;
+/* ---------- header (Text links, Stats rechts) ---------- */
+.header{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:14px;
+
+  padding: 8px 2px 14px;
+  border-bottom: 1px solid var(--line);
 }
 
-.title-text {
-  margin: 0;
-  font-size: clamp(34px, 3vw, 44px);
-  font-weight: 950;
+/* Brand: nur Text (kein Logo oben) */
+.brand{
+  display:flex;
+  align-items:flex-end;
+  gap:12px;
+  min-width: 0;
+}
+
+.brand-logo{ display:none; } /* falls irgendwo noch gerendert wird */
+
+.brand-text{ min-width:0; }
+
+.brand-title{
+  font-weight: 1000;
   letter-spacing: -0.02em;
+  font-size: 16px;
   line-height: 1.1;
-  position: relative;
-  z-index: 1;
 }
 
-/* ---------- 2) Donation Summary ---------- */
-.donation-summary {
-  padding: 16px 18px;
-  opacity: 0.93;
-}
-
-.recent-donations {
-  margin-bottom: 10px;
-}
-
-.subtitle {
-  margin: 0 0 10px;
-  font-size: 18px;
+.brand-subtitle{
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 700;
   color: var(--muted);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
 }
 
-.donation-list {
+/* Stats rechts: ohne Boxen */
+.stats{
+  display:flex;
+  gap:14px;
+}
+
+.stat{
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  text-align:right;
+  min-width: 86px;
+}
+
+.stat-label{
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+}
+
+.stat-value{
+  margin-top: 2px;
+  font-size: 16px;
+  font-weight: 1000;
+}
+
+/* ---------- stack ---------- */
+.stack{
+  margin-top: 14px;
+  display:flex;
+  flex-direction:column;
+  gap: 16px;
+}
+
+/* ---------- cards: “no box” look ---------- */
+.card{
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+/* ---------- hero ---------- */
+.donation-question{
+  padding: 2px 0 0;
+}
+
+.question-kicker{
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.title-text{
+  margin: 0;
+  font-size: clamp(26px, 3vw, 38px);
+  font-weight: 1000;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+}
+
+/* ---------- summary ---------- */
+.donation-summary{
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+/* Aktuelle Spenden + Pills: immer in einer Linie */
+.recent-donations{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;           /* KEIN Umbruch */
+  margin-bottom: 8px;
+}
+
+.subtitle{
+  margin: 0;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  white-space: nowrap;
+}
+
+/* Liste bleibt in einer Linie + scrollt wenn nötig */
+.donation-list{
   margin: 0;
   padding: 0;
   list-style: none;
+
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;           /* KEIN Umbruch */
   gap: 8px;
+
+  overflow-x: auto;            /* falls zu lang: horizontal scroll */
+  overflow-y: hidden;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
 }
 
-.donation-list li {
-  font-size: 18px;
-  font-weight: 800;
-  padding: 4px 8px; 
+/* optional: Scrollbar dezenter */
+.donation-list::-webkit-scrollbar{
+  height: 6px;
+}
+.donation-list::-webkit-scrollbar-thumb{
+  background: rgba(15, 23, 42, 0.18);
   border-radius: 999px;
-  background: rgba(2, 6, 23, 0.04);
-  border: 1px solid rgba(2, 6, 23, 0.08);
 }
 
-.total-amount {
-  margin: 10px 0 0;
-  font-size: 18px;
+/* Pills/Kreise */
+.donation-list li{
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 1000;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  color: var(--text);
+}
+
+/* Falls DonationSummary noch total-amount enthält, neutral halten */
+.total-amount{
+  margin: 6px 0 0;
+  font-size: 14px;
   line-height: 1.5;
+  color: var(--text);
+}
+.total-amount strong{ font-weight: 1000; }
+
+/* ---------- donation target + qr ---------- */
+.donation-info{
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
 }
 
-.total-amount strong {
-  font-weight: 900;
+.donation-target{
+  padding: 0;
 }
 
-/* ---------- 3) Donation Target ---------- */
-.donation-target {
-  padding: 14px 18px;
-  opacity: 0.93;
-}
-
-.target-text {
+.target-text{
   margin: 0;
-  font-size: 18px;
-  line-height: 1.5;
+  font-size: 14px;
+  line-height: 1.55;
 }
 
-.donation-target strong {
-  font-weight: 900;
-  background: #dff2df;
-  border: 1px solid rgba(22, 163, 74, 0.22);
+.donation-target strong{
+  font-weight: 1000;
+  background: rgba(22,163,74,0.12);
+  border: 1px solid rgba(22,163,74,0.22);
   padding: 2px 10px;
-  border-radius: 999px;
+  border-radius: 10px;
 }
 
-/* ---------- Combined Card (Target + QR) ---------- */
-.donation-info-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-}
-
-.donation-info-card .donation-target {
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  border-radius: 0;
-  margin: 0;
-}
-
-.donation-info-card .qr-code-info {
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  border-radius: 0;
-  margin: 0;
-
-  /* Strich weg */
-  border-top: none !important;
-}
-
-/* ---------- 4) QR Code ---------- */
-.qr-code-info {
-  padding: 12px 12px;
-  display: grid;
-  grid-template-columns: auto 1fr; /* links: QR+Logo, rechts: Text */
-  align-items: center;
+/* QR area: kompakt, keine Boxen um Bilder */
+.qr-code-info{
+  padding: 0;
+  display:grid;
+  grid-template-columns: auto 1fr;
+  align-items:center;
   gap: 12px;
-  opacity: 0.93;
 }
 
-/* QR links, Logo rechts (in einer Reihe) */
-.qr-logo-row {
-  display: flex;
-  align-items: center;
-  gap: 0px;
+.qr-logo-row{
+  display:flex;
+  align-items:center;
+  gap: 10px;
 }
 
-/* Einzelne Boxen um die Bilder entfernen */
-.qr-code-image {
-  width: 140px;     /* QR bleibt kleiner */
-  height: 140px;
+.qr-code-image{
+  width: 120px;
+  height: 120px;
   object-fit: contain;
+  display:block;
 
-  background: transparent;
   border: none;
-  box-shadow: none;
+  background: transparent;
   padding: 0;
   border-radius: 0;
+  box-shadow: none;
 }
 
-.club-logo {
-  width: 220px;     /* Logo größer */
-  height: 180px;
+.club-logo{
+  width: 200px;
+  height: 120px;
   object-fit: contain;
+  display:block;
 
-  background: transparent;
   border: none;
-  box-shadow: none;
+  background: transparent;
   padding: 0;
   border-radius: 0;
+  box-shadow: none;
 }
 
-
-.donation-info-card .donation-target { padding-bottom: 2px; }
-.donation-info-card .qr-code-info { padding-top: 2px; }
-
-.qr-info-text {
+.qr-info-text{
   margin: 0;
-  font-size: 18px;
+  font-size: 15px;
+  font-weight: 750;
   color: var(--muted);
   line-height: 1.5;
 }
 
-/* ---------- 5) Call to Donate ---------- */
-.call-to-donate {
-  margin: 14px 0 18px;
-  border-radius: var(--radius-lg);
-  padding: 22px 28px;
-  text-align: center;
-  background: linear-gradient(90deg, var(--accent-cta-1), var(--accent-cta-2));
-  color: #fff;
-  box-shadow: 0 22px 50px rgba(255, 106, 61, 0.28);
-  position: relative;
-  overflow: hidden;
-  animation: ctaPulse 2.8s ease-in-out infinite;
+/* ===== FIX CTA (egal wie CallToDonate intern gebaut ist) ===== */
+.card-cta .call-to-donate{
+  background: var(--cta) !important;
+  color: var(--ctaText) !important;
+
+  border: 1px solid rgba(255, 106, 61, 0.35) !important;
+  border-radius: 16px !important;          /* Box, nicht pill */
+  padding: 18px 16px !important;
+
+  box-shadow: 0 18px 45px rgba(255, 106, 61, 0.26) !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
-@keyframes ctaPulse {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-2px); }
+/* Text im CTA */
+.card-cta .call-to-donate p,
+.card-cta .call-to-donate{
+  margin: 0 !important;
+  font-size: 22px !important;
+  font-weight: 1000 !important;
+  letter-spacing: -0.01em !important;
 }
 
-.call-to-donate::after {
-  content: "";
-  position: absolute;
-  top: -40%;
-  left: -60%;
-  width: 60%;
-  height: 220%;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0),
-    rgba(255, 255, 255, 0.24),
-    rgba(255, 255, 255, 0)
-  );
-  transform: rotate(18deg);
-  animation: shine 2.6s ease-in-out infinite;
-  pointer-events: none;
+/* Falls du DOCH ein inneres Wrapper-Element hast */
+.card-cta .call-to-donate-inner{
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
 }
 
-@keyframes shine {
-  0% { transform: translateX(0) rotate(18deg); opacity: 0; }
-  15% { opacity: 1; }
-  45% { opacity: 1; }
-  60% { opacity: 0; }
-  100% { transform: translateX(320%) rotate(18deg); opacity: 0; }
+/* Optional: falls es rechts einen kleinen Button/Badge gibt */
+.card-cta .cta-pill{
+  background: rgba(255,255,255,0.18) !important;
+  border: 1px solid rgba(255,255,255,0.28) !important;
+  color: #fff !important;
+  padding: 10px 12px !important;
+  border-radius: 12px !important;
+  font-weight: 1000 !important;
 }
 
-.call-to-donate p {
+
+/* ---------- Section head ---------- */
+.section-head{
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  margin-bottom: 10px;
+
+  display:flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.section-title{
   margin: 0;
-  font-size: 28px;
-  font-weight: 950;
-  letter-spacing: -0.01em;
+  font-size: 16px;
+  font-weight: 1000;
 }
 
-/* ---------- 6) Voting Results Chart ---------- */
-.voting-results-chart {
-  padding: 18px 14px 16px;
-  display: flex;
+.section-subtitle{
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+/* ---------- results ---------- */
+.voting-results-chart{
+  display:flex;
   justify-content: space-evenly;
   align-items: flex-end;
-  gap: 44px;
+  gap: 18px;
+  padding: 6px 0 0;
 }
 
-.candidate-result-column {
-  width: 240px;
-  display: flex;
+.candidate-result-column{
+  width: 200px;
+  display:flex;
   flex-direction: column;
-  align-items: center;
-  gap: 14px;
+  align-items:center;
+  gap: 10px;
 }
 
-.bar {
-  width: 170px;
-  height: 520px;
-  background: var(--bar-bg);
-  border-radius: 30px;
-  overflow: hidden;
-  display: flex;
-  align-items: flex-end;
-  border: 1px solid rgba(15, 23, 42, 0.10);
-  box-shadow: var(--shadow-soft);
-  position: relative;
+.bar{
+  width: 150px;
+  height: 360px;
+  background: var(--bar-track);
+  border-radius: 18px;
+  overflow:hidden;
+  border: 1px solid rgba(15,23,42,0.10);
+  display:flex;
+  align-items:flex-end;
 }
 
-.bar::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0));
-  pointer-events: none;
+.fill{
+  width:100%;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  padding-bottom: 10px;
+  transition: height 320ms cubic-bezier(0.2, 0.9, 0.2, 1);
 }
 
-.fill {
-  width: 100%;
-  background: var(--bar-fill);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding-bottom: 14px;
-  transition: height 420ms cubic-bezier(0.2, 0.9, 0.2, 1);
-  position: relative;
+.candidate-result-column:nth-child(1) .fill{ background: var(--bar-a); }
+.candidate-result-column:nth-child(2) .fill{ background: var(--bar-b); }
+
+.bar-label{
+  font-size: 15px;
+  font-weight: 1000;
+  color:#fff;
+  background: rgba(0,0,0,0.20);
+  border: 1px solid rgba(255,255,255,0.18);
+  padding: 8px 10px;
+  border-radius: 12px;
 }
 
-.fill::after {
-  content: "";
-  position: absolute;
-  inset: -40% -20% auto -20%;
-  height: 55%;
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.25), transparent 55%);
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-.bar-label {
-  color: #ffffff;
-  font-weight: 950;
-  font-size: 22px;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.30);
-  padding: 12px 16px;
-  border-radius: 999px;
-  background: rgba(2, 6, 23, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(6px);
-}
-
-.candidate-name {
-  font-size: 22px;
-  font-weight: 950;
-  text-align: center;
+.candidate-name{
+  font-size: 18px;
+  font-weight: 1000;
+  text-align:center;
   line-height: 1.2;
 }
 
-.candidate-result-column:hover .bar {
-  transform: translateY(-3px);
-  transition: transform 200ms ease;
-}
+/* ---------- responsive ---------- */
+@media (max-width: 720px){
+  .stats{ display:none; }
 
-
-/* ---------- Responsive ---------- */
-@media (min-width: 1100px) {
-  .bar { width: 190px; height: 560px; }
-  .voting-results-chart { gap: 56px; }
-}
-
-@media (max-width: 900px) {
-  .voting-results-chart { gap: 28px; }
-  .candidate-result-column { width: 210px; }
-  .bar { width: 150px; height: 460px; }
-  .bar-label { font-size: 20px; }
-}
-
-@media (max-width: 720px) {
-  .qr-code-info {
+  .qr-code-info{
     grid-template-columns: 1fr;
     justify-items: center;
     text-align: center;
+    gap: 10px;
   }
 
-  .qr-code-image { width: 120px; height: 120px; }
-
-  .voting-results-chart {
-    padding: 16px 10px 14px;
-    gap: 18px;
+  .qr-logo-row{
+    justify-content:center;
   }
 
-  .candidate-result-column { width: 180px; }
-  .bar { width: 120px; height: 360px; }
-  .bar-label { font-size: 18px; }
-  .call-to-donate p { font-size: 24px; }
+  .club-logo{ width: 180px; height: 110px; }
+  .qr-code-image{ width: 110px; height: 110px; }
+
+  .candidate-result-column{ width: 160px; }
+  .bar{ width: 120px; height: 280px; }
+
+  .call-to-donate p{ font-size: 22px; }
 }
 
-@media (max-width: 520px) {
-  .candidate-result-column { width: 160px; }
-  .bar { width: 104px; height: 300px; }
-  .candidate-name { font-size: 18px; }
-  .bar-label { font-size: 16px; }
+@media (prefers-reduced-motion: reduce){
+  .fill{ transition:none !important; }
 }
-
-/* Accessibility: Reduce motion */
-@media (prefers-reduced-motion: reduce) {
-  .donation-question::before,
-  .call-to-donate,
-  .call-to-donate::after {
-    animation: none !important;
-  }
-
-  .fill { transition: none !important; }
-}
-
-.recent-donations {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.subtitle {
-  margin: 0;
-  white-space: nowrap; /* damit es nicht umbrechen kann */
-}
-
-.donation-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-

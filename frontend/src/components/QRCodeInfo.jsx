@@ -5,7 +5,6 @@ export default function QRCodeInfo({ qrImageSrc, clubLogoSrc, qrInfoText, alt })
         <img className="qr-code-image" src={qrImageSrc} alt={alt} />
         <img className="club-logo" src={clubLogoSrc} alt="Vereinslogo" />
       </div>
-
       <p className="qr-info-text">{qrInfoText}</p>
     </section>
   );
