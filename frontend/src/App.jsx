@@ -8,6 +8,7 @@ import QRCodeInfo from "./components/QRCodeInfo.jsx";
 import CallToDonate from "./components/CallToDonate.jsx";
 import VotingResultsChart from "./components/ResultBars.jsx";
 
+import clubLogo from "./assets/logo.jpg";
 import qrCodeSvg from "./assets/qrcode.svg";
 
 export default function App() {
@@ -18,12 +19,12 @@ export default function App() {
   const totalAmount = "97,25€";
   const totalDonationsCount = 105;
 
-  const charityName = "Tierheim Dellbrück e.V.";
+  const charityName = "Lobby für Mädchen- Mädchenhaus Köln e.V.";
 
   const qrInfoText =
     "Scannen Sie den QR-Code, um mehr über die Spendenorganisation zu erfahren.";
 
-  const callToActionText = "Unterstützen Sie unsere Sache heute!";
+  const callToActionText = "Spenden sie ihr Bargeld und stimmen sie ab!";
 
   const results = [
     { name: "Lionel Messi", amount: "65,00€", percent: 70 },
@@ -40,13 +41,16 @@ export default function App() {
         totalDonationsCount={totalDonationsCount}
       />
 
-      <DonationTarget charityName={charityName} />
+      <div className="donation-info-card">
+        <DonationTarget charityName={charityName} />
 
-      <QRCodeInfo
-        qrImageSrc={qrCodeSvg}
-        qrInfoText={qrInfoText}
-        alt="QR Code for more information"
-      />
+        <QRCodeInfo
+          qrImageSrc={qrCodeSvg}
+          clubLogoSrc={clubLogo}
+          qrInfoText={qrInfoText}
+          alt="QR Code for more information"
+        />
+      </div>
 
       <CallToDonate text={callToActionText} />
 
