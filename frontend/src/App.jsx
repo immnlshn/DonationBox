@@ -8,7 +8,7 @@ import QRCodeInfo from "./components/QRCodeInfo.jsx";
 import CallToDonate from "./components/CallToDonate.jsx";
 import VotingResultsChart from "./components/ResultBars.jsx";
 
-import clubLogo from "./assets/logo.jpg";
+import clubLogo from "./assets/logo.png";
 import qrCodeSvg from "./assets/qrcode.svg";
 
 export default function App() {
@@ -22,7 +22,7 @@ export default function App() {
   const charityName = "Lobby für Mädchen- Mädchenhaus Köln e.V.";
 
   const qrInfoText =
-    "Scannen Sie den QR-Code, um mehr über die Spendenorganisation zu erfahren.";
+    "Scanne den QR-Code, um mehr über die Spendenorganisation zu erfahren.";
 
   const callToActionText = "Spenden sie ihr Bargeld und stimmen sie ab!";
 

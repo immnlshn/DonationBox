@@ -55,7 +55,7 @@
 
 .subtitle {
   margin: 0 0 10px;
-  font-size: 13px;
+  font-size: 18px;
   color: var(--muted);
   font-weight: 800;
   text-transform: uppercase;
@@ -72,9 +72,9 @@
 }
 
 .donation-list li {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 800;
-  padding: 7px 10px;
+  padding: 4px 8px; 
   border-radius: 999px;
   background: rgba(2, 6, 23, 0.04);
   border: 1px solid rgba(2, 6, 23, 0.08);
@@ -82,7 +82,7 @@
 
 .total-amount {
   margin: 10px 0 0;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.5;
 }
 
@@ -98,7 +98,7 @@
 
 .target-text {
   margin: 0;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.5;
 }
 
@@ -140,7 +140,7 @@
 
 /* ---------- 4) QR Code ---------- */
 .qr-code-info {
-  padding: 12px 16px;
+  padding: 12px 12px;
   display: grid;
   grid-template-columns: auto 1fr; /* links: QR+Logo, rechts: Text */
   align-items: center;
@@ -152,14 +152,13 @@
 .qr-logo-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0px;
 }
 
 /* Einzelne Boxen um die Bilder entfernen */
-.qr-code-image,
-.club-logo {
-  width: 110px;
-  height: 110px;
+.qr-code-image {
+  width: 140px;     /* QR bleibt kleiner */
+  height: 140px;
   object-fit: contain;
 
   background: transparent;
@@ -169,9 +168,25 @@
   border-radius: 0;
 }
 
+.club-logo {
+  width: 220px;     /* Logo größer */
+  height: 180px;
+  object-fit: contain;
+
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+
+.donation-info-card .donation-target { padding-bottom: 2px; }
+.donation-info-card .qr-code-info { padding-top: 2px; }
+
 .qr-info-text {
   margin: 0;
-  font-size: 15px;
+  font-size: 18px;
   color: var(--muted);
   line-height: 1.5;
 }
@@ -179,7 +194,7 @@
 /* ---------- 5) Call to Donate ---------- */
 .call-to-donate {
   margin: 14px 0 18px;
-  border-radius: 999px;
+  border-radius: var(--radius-lg);
   padding: 22px 28px;
   text-align: center;
   background: linear-gradient(90deg, var(--accent-cta-1), var(--accent-cta-2));
@@ -362,3 +377,25 @@
 
   .fill { transition: none !important; }
 }
+
+.recent-donations {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  margin: 0;
+  white-space: nowrap; /* damit es nicht umbrechen kann */
+}
+
+.donation-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
