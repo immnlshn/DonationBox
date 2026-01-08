@@ -1,8 +1,8 @@
 /* =========================
-   DonationBox – Clean v2
-   Weißer Hintergrund, klare Hierarchie,
-   wenig Boxen, CTA auffällig, Donations in EINER Linie (Pills)
-   ========================= */
+cd frontend
+npm run dev
+http://localhost:5173/
+========================= */
 
 :root{
   --bg: #fffffff;
@@ -126,10 +126,16 @@ body{
   padding: 0;
 }
 
-/* ---------- hero ---------- */
-.donation-question{
-  padding: 2px 0 0;
+/* Frage zentrieren */
+.donation-question {
+  text-align: center;
+  margin: 12px 0;
 }
+
+.donation-question .title-text {
+  text-align: center;
+}
+
 
 .question-kicker{
   margin: 0 0 8px;
@@ -447,4 +453,21 @@ body{
 
 @media (prefers-reduced-motion: reduce){
   .fill{ transition:none !important; }
+}
+
+
+/* Charity-Name: keine Box/Farbe, dafür größer + eigene Zeile */
+.donation-target strong{
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+
+  display: block;              /* neue Zeile */
+  margin-top: 6px;
+
+  font-size: 18px;             /* größer */
+  font-weight: 1000;
+  color: var(--text);
+  line-height: 1.25;
 }
