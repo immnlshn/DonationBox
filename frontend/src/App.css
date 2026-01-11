@@ -5,7 +5,7 @@ http://localhost:5173/
 ========================= */
 
 :root{
-  --bg: #fffffff;
+  --bg: #ffffff;
   --text: #0f172a;
   --muted: #5b6b86;
 
@@ -54,7 +54,7 @@ body{
   border-bottom: 1px solid var(--line);
 }
 
-/* Brand: nur Text (kein Logo oben) */
+/* Brand: nur Text */
 .brand{
   display:flex;
   align-items:flex-end;
@@ -62,7 +62,7 @@ body{
   min-width: 0;
 }
 
-.brand-logo{ display:none; } /* falls irgendwo noch gerendert wird */
+.brand-logo{ display:none; } 
 
 .brand-text{ min-width:0; }
 
@@ -80,7 +80,6 @@ body{
   color: var(--muted);
 }
 
-/* Stats rechts: ohne Boxen */
 .stats{
   display:flex;
   gap:14px;
@@ -109,7 +108,7 @@ body{
   font-weight: 1000;
 }
 
-/* ---------- stack ---------- */
+
 .stack{
   margin-top: 14px;
   display:flex;
@@ -117,7 +116,6 @@ body{
   gap: 16px;
 }
 
-/* ---------- cards: “no box” look ---------- */
 .card{
   background: transparent;
   border: none;
@@ -126,7 +124,6 @@ body{
   padding: 0;
 }
 
-/* Frage zentrieren */
 .donation-question {
   text-align: center;
   margin: 12px 0;
@@ -135,7 +132,6 @@ body{
 .donation-question .title-text {
   text-align: center;
 }
-
 
 .question-kicker{
   margin: 0 0 8px;
@@ -160,14 +156,6 @@ body{
   border-top: 1px solid var(--line);
 }
 
-/* Aktuelle Spenden + Pills: immer in einer Linie */
-.recent-donations{
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: nowrap;           /* KEIN Umbruch */
-  margin-bottom: 8px;
-}
 
 .subtitle{
   margin: 0;
@@ -179,23 +167,22 @@ body{
   white-space: nowrap;
 }
 
-/* Liste bleibt in einer Linie + scrollt wenn nötig */
+
 .donation-list{
   margin: 0;
   padding: 0;
   list-style: none;
 
   display: flex;
-  flex-wrap: nowrap;           /* KEIN Umbruch */
+  flex-wrap: nowrap;          
   gap: 8px;
 
-  overflow-x: auto;            /* falls zu lang: horizontal scroll */
+  overflow-x: auto;          
   overflow-y: hidden;
   white-space: nowrap;
   -webkit-overflow-scrolling: touch;
 }
 
-/* optional: Scrollbar dezenter */
 .donation-list::-webkit-scrollbar{
   height: 6px;
 }
@@ -216,7 +203,6 @@ body{
   color: var(--text);
 }
 
-/* Falls DonationSummary noch total-amount enthält, neutral halten */
 .total-amount{
   margin: 6px 0 0;
   font-size: 14px;
@@ -245,21 +231,20 @@ body{
 }
 
 .donation-target strong{
+  background: transparent;
+  border: none;
+  padding: 0;
+  border-radius: 0;
+
+  display: block;             
+  margin-top: 6px;
+
+  font-size: 18px;             
   font-weight: 1000;
-  background: rgba(22,163,74,0.12);
-  border: 1px solid rgba(22,163,74,0.22);
-  padding: 2px 10px;
-  border-radius: 10px;
+  color: var(--text);
+  line-height: 1.25;
 }
 
-/* QR area: kompakt, keine Boxen um Bilder */
-.qr-code-info{
-  padding: 0;
-  display:grid;
-  grid-template-columns: auto 1fr;
-  align-items:center;
-  gap: 12px;
-}
 
 .qr-logo-row{
   display:flex;
@@ -301,7 +286,6 @@ body{
   line-height: 1.5;
 }
 
-/* ===== FIX CTA (egal wie CallToDonate intern gebaut ist) ===== */
 .card-cta .call-to-donate{
   background: var(--cta) !important;
   color: var(--ctaText) !important;
@@ -326,23 +310,6 @@ body{
   letter-spacing: -0.01em !important;
 }
 
-/* Falls du DOCH ein inneres Wrapper-Element hast */
-.card-cta .call-to-donate-inner{
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-}
-
-/* Optional: falls es rechts einen kleinen Button/Badge gibt */
-.card-cta .cta-pill{
-  background: rgba(255,255,255,0.18) !important;
-  border: 1px solid rgba(255,255,255,0.28) !important;
-  color: #fff !important;
-  padding: 10px 12px !important;
-  border-radius: 12px !important;
-  font-weight: 1000 !important;
-}
 
 
 /* ---------- Section head ---------- */
@@ -354,7 +321,7 @@ body{
 
   display:flex;
   align-items: baseline;
-  justify-content: space-between;
+  justify-content: center;
   gap: 10px;
 }
 
@@ -457,22 +424,6 @@ body{
 }
 
 
-/* Charity-Name: keine Box/Farbe, dafür größer + eigene Zeile */
-.donation-target strong{
-  background: transparent !important;
-  border: none !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-
-  display: block;              /* neue Zeile */
-  margin-top: 6px;
-
-  font-size: 18px;             /* größer */
-  font-weight: 1000;
-  color: var(--text);
-  line-height: 1.25;
-}
-
 /* QR Layout: links Bilder, rechts Textblock */
 .qr-code-info{
   display: grid;
@@ -488,20 +439,11 @@ body{
   gap: 8px;
 }
 
-/* DonationTarget im QR-Bereich: keine extra Linien/Abstände */
-.qr-right .donation-target{
-  padding: 0;
-  border-top: none;
-}
 
 .qr-right .target-text{
   margin: 0;
 }
 
-/* Scan-Text bleibt wie gehabt */
-.qr-info-text{
-  margin: 0;
-}
 
 /* Aktuelle Spenden komplett zentrieren */
 .donation-summary{
@@ -513,34 +455,6 @@ body{
   justify-content: center;   /* horizontal zentriert */
   align-items: center;
   gap: 10px;
+  margin-bottom: 0px !important;
 }
 
-.subtitle{
-  margin: 0;
-  white-space: nowrap;
-}
-
-.donation-list{
-  justify-content: center;   /* Kreise zentrieren */
-}
-
-/* Nur "Aktueller Stand" zentrieren – funktioniert auch bei flex */
-.section-head{
-  justify-content: center !important;  /* falls display:flex */
-}
-
-.section-head .section-title{
-  text-align: center !important;
-  width: 100%;
-}
-
-
-/* Abstand unter "Aktuelle Spenden" kleiner */
-.recent-donations{
-  margin-bottom: 0px !important;   /* vorher z.B. 8px */
-}
-
-/* falls die Linie durch padding-bottom entsteht */
-.donation-summary{
-  padding-bottom: 0px !important; /* vorher ggf. 18px */
-}
