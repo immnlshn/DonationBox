@@ -65,14 +65,16 @@ export default function App() {
 
         <section className="card">
           <div className="donation-info">
-            <DonationTarget charityName={charityName} />
             <QRCodeInfo
-              qrImageSrc={qrCodeSvg}
-              clubLogoSrc={clubLogo}
-              qrInfoText={qrInfoText}
+               qrImageSrc={qrCodeSvg}
+               clubLogoSrc={clubLogo}
+               qrInfoText={qrInfoText}
               alt="QR Code for more information"
-            />
-          </div>
+         >
+              <DonationTarget charityName={charityName} />
+        </QRCodeInfo>
+      </div>
+
         </section>
 
         <section className="card card-cta">

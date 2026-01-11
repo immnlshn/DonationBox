@@ -350,6 +350,7 @@ body{
   padding-top: 14px;
   border-top: 1px solid var(--line);
   margin-bottom: 10px;
+  text-align: center;
 
   display:flex;
   align-items: baseline;
@@ -470,4 +471,76 @@ body{
   font-weight: 1000;
   color: var(--text);
   line-height: 1.25;
+}
+
+/* QR Layout: links Bilder, rechts Textblock */
+.qr-code-info{
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 12px;
+}
+
+/* rechter Bereich: Target oben, Scan-Text darunter */
+.qr-right{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* DonationTarget im QR-Bereich: keine extra Linien/Abstände */
+.qr-right .donation-target{
+  padding: 0;
+  border-top: none;
+}
+
+.qr-right .target-text{
+  margin: 0;
+}
+
+/* Scan-Text bleibt wie gehabt */
+.qr-info-text{
+  margin: 0;
+}
+
+/* Aktuelle Spenden komplett zentrieren */
+.donation-summary{
+  text-align: center;
+}
+
+.recent-donations{
+  display: flex;
+  justify-content: center;   /* horizontal zentriert */
+  align-items: center;
+  gap: 10px;
+}
+
+.subtitle{
+  margin: 0;
+  white-space: nowrap;
+}
+
+.donation-list{
+  justify-content: center;   /* Kreise zentrieren */
+}
+
+/* Nur "Aktueller Stand" zentrieren – funktioniert auch bei flex */
+.section-head{
+  justify-content: center !important;  /* falls display:flex */
+}
+
+.section-head .section-title{
+  text-align: center !important;
+  width: 100%;
+}
+
+
+/* Abstand unter "Aktuelle Spenden" kleiner */
+.recent-donations{
+  margin-bottom: 0px !important;   /* vorher z.B. 8px */
+}
+
+/* falls die Linie durch padding-bottom entsteht */
+.donation-summary{
+  padding-bottom: 0px !important; /* vorher ggf. 18px */
 }
