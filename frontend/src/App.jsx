@@ -9,6 +9,7 @@ import VotingResultsChart from "./components/ResultBars.jsx";
 
 import clubLogo from "./assets/logo.png"; // bleibt für QRCodeInfo
 import qrCodeSvg from "./assets/qrcode.svg";
+import ThankYouPopUp from "./components/ThankYouPopUp.jsx";
 
 export default function App() {
   const questionText = "Wer ist der GOAT im Fußball?";
@@ -29,8 +30,11 @@ export default function App() {
     { name: "Cristiano Ronaldo", percent: 29.5 },
   ];
 
+  const popUpShown = false;
+
   return (
     <div className="page">
+      {popUpShown && <ThankYouPopUp donationData={{amount: 100, categorie: "Messi"}}/>}
       <header className="header">
         <div className="brand">
           {/* Logo oben entfernt, Text bleibt */}
