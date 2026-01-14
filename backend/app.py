@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.database.init_db import run_migrations
-from services.gpio.GPIOService import gpio_service
+from backend.services.gpio.GPIOService import gpio_service
 from .routes import api_router
 from .settings import settings
 

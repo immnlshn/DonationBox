@@ -24,9 +24,11 @@ async def websocket_endpoint(websocket: WebSocket):
   :type websocket: WebSocket
   :return: None
   """
+  logger.info("Client connected")
+
   await websocket_service.connect(websocket)
   try:
-    await websocket_service.listen_for_messages_json(websocket)
+    await websocket_service.listen_for_messages_json(websocket, echo=True, broadcast=True)
   except WebSocketDisconnect:
     await websocket_service.disconnect(websocket)
     logger.info("Client disconnected")
