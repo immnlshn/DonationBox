@@ -286,6 +286,27 @@ body{
   line-height: 1.5;
 }
 
+/* QR Layout: links Bilder, rechts Textblock */
+.qr-code-info{
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 12px;
+}
+
+/* rechter Bereich: Target oben, Scan-Text darunter */
+.qr-right{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.qr-right .target-text{
+  margin: 0;
+}
+
+
+/* ---------- call to action (CTA) ---------- */
 .card-cta .call-to-donate{
   background: var(--cta) !important;
   color: var(--ctaText) !important;
@@ -309,7 +330,6 @@ body{
   font-weight: 1000 !important;
   letter-spacing: -0.01em !important;
 }
-
 
 
 /* ---------- Section head ---------- */
@@ -423,26 +443,6 @@ body{
   .fill{ transition:none !important; }
 }
 
-
-/* QR Layout: links Bilder, rechts Textblock */
-.qr-code-info{
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 12px;
-}
-
-/* rechter Bereich: Target oben, Scan-Text darunter */
-.qr-right{
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-
-.qr-right .target-text{
-  margin: 0;
-}
 
 
 /* Aktuelle Spenden komplett zentrieren */
