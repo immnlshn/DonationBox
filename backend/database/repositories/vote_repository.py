@@ -8,7 +8,7 @@ from typing import Optional, Iterable
 
 from sqlalchemy import select, update
 from sqlalchemy.exc import NoResultFound
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.database.repositories import BaseRepository
 from backend.models import Vote, Category
@@ -17,10 +17,10 @@ from backend.models import Vote, Category
 class VoteRepository(BaseRepository[Vote]):
     """Repository for Vote entity operations."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         super().__init__(db, Vote)
 
-    def create(
+    async def create(
         self,
         question: str,
         start_time: datetime,
@@ -49,19 +49,18 @@ class VoteRepository(BaseRepository[Vote]):
         )
 
         if category_ids:
-            categories = list(
-                self.db.execute(
-                    select(Category).where(Category.id.in_(list(category_ids)))
-                ).scalars().all()
+            result = await self.db.execute(
+                select(Category).where(Category.id.in_(list(category_ids)))
             )
+            categories = list(result.scalars().all())
             vote.categories = categories
 
         self.db.add(vote)
-        self.commit()
-        self.refresh(vote)
+        await self.commit()
+        await self.refresh(vote)
         return vote
 
-    def get_active(self) -> Optional[Vote]:
+    async def get_active(self) -> Optional[Vote]:
         """
         Get the currently active vote.
 
@@ -69,9 +68,10 @@ class VoteRepository(BaseRepository[Vote]):
             Active Vote or None if no vote is active
         """
         stmt = select(Vote).where(Vote.is_active.is_(True)).order_by(Vote.id.desc())
-        return self.db.execute(stmt).scalars().first()
+        result = await self.db.execute(stmt)
+        return result.scalars().first()
 
-    def set_active(self, vote_id: int) -> None:
+    async def set_active(self, vote_id: int) -> None:
         """
         Set a vote as active and deactivate all others.
 
@@ -81,16 +81,16 @@ class VoteRepository(BaseRepository[Vote]):
         Raises:
             NoResultFound: If vote with given ID doesn't exist
         """
-        self.db.execute(update(Vote).values(is_active=False))
-        res = self.db.execute(
+        await self.db.execute(update(Vote).values(is_active=False))
+        res = await self.db.execute(
             update(Vote).where(Vote.id == vote_id).values(is_active=True)
         )
         if res.rowcount == 0:
-            self.rollback()
+            await self.rollback()
             raise NoResultFound(f"Vote id={vote_id} not found")
-        self.commit()
+        await self.commit()
 
-    def list_all(self, limit: int = 100, offset: int = 0) -> list[Vote]:
+    async def list_all(self, limit: int = 100, offset: int = 0) -> list[Vote]:
         """
         List all votes with pagination.
 
@@ -102,9 +102,10 @@ class VoteRepository(BaseRepository[Vote]):
             List of Vote entities
         """
         stmt = select(Vote).order_by(Vote.id.desc()).limit(limit).offset(offset)
-        return list(self.db.execute(stmt).scalars().all())
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
 
-    def delete(self, vote_id: int) -> bool:
+    async def delete(self, vote_id: int) -> bool:
         """
         Delete a vote. Cascades to donations.
 
@@ -114,14 +115,14 @@ class VoteRepository(BaseRepository[Vote]):
         Returns:
             True if deleted, False if not found
         """
-        vote = self.get_by_id(vote_id)
+        vote = await self.get_by_id(vote_id)
         if not vote:
             return False
-        self.db.delete(vote)
-        self.commit()
+        await self.db.delete(vote)
+        await self.commit()
         return True
 
-    def add_categories(self, vote_id: int, category_ids: Iterable[int]) -> Vote:
+    async def add_categories(self, vote_id: int, category_ids: Iterable[int]) -> Vote:
         """
         Add categories to a vote.
 
@@ -135,26 +136,25 @@ class VoteRepository(BaseRepository[Vote]):
         Raises:
             NoResultFound: If vote doesn't exist
         """
-        vote = self.get_by_id(vote_id)
+        vote = await self.get_by_id(vote_id)
         if not vote:
             raise NoResultFound(f"Vote id={vote_id} not found")
 
-        categories = list(
-            self.db.execute(
-                select(Category).where(Category.id.in_(list(category_ids)))
-            ).scalars().all()
+        result = await self.db.execute(
+            select(Category).where(Category.id.in_(list(category_ids)))
         )
+        categories = list(result.scalars().all())
 
         existing_ids = {c.id for c in vote.categories}
         for c in categories:
             if c.id not in existing_ids:
                 vote.categories.append(c)
 
-        self.commit()
-        self.refresh(vote)
+        await self.commit()
+        await self.refresh(vote)
         return vote
 
-    def remove_categories(self, vote_id: int, category_ids: Iterable[int]) -> Vote:
+    async def remove_categories(self, vote_id: int, category_ids: Iterable[int]) -> Vote:
         """
         Remove categories from a vote.
 
@@ -168,14 +168,14 @@ class VoteRepository(BaseRepository[Vote]):
         Raises:
             NoResultFound: If vote doesn't exist
         """
-        vote = self.get_by_id(vote_id)
+        vote = await self.get_by_id(vote_id)
         if not vote:
             raise NoResultFound(f"Vote id={vote_id} not found")
 
         remove_set = set(category_ids)
         vote.categories = [c for c in vote.categories if c.id not in remove_set]
 
-        self.commit()
-        self.refresh(vote)
+        await self.commit()
+        await self.refresh(vote)
         return vote
 

@@ -49,7 +49,7 @@ async def get_current_vote(
     Returns:
         The active Vote object or None if no vote is active
     """
-    vote = voting_service.get_active_vote()
+    vote = await voting_service.get_active_vote()
     if not vote:
         return None
     return vote
@@ -69,7 +69,7 @@ async def get_vote_totals(
     Returns:
         Totals with total amount and amounts per category
     """
-    totals = donation_service.get_totals_for_vote(vote_id)
+    totals = await donation_service.get_totals_for_vote(vote_id)
     return DonationTotalsResponse(
         vote_id=vote_id,
         **totals

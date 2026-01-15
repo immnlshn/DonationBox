@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import asyncio
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import pool
+from sqlalchemy.engine import Connection
+from sqlalchemy.ext.asyncio import async_engine_from_config
 
 import os
 import sys
@@ -29,7 +32,12 @@ target_metadata = Base.metadata
 
 
 def get_url() -> str:
-    return settings.DATABASE_URL
+    """Get database URL, converting to async format if needed."""
+    url = settings.DATABASE_URL
+    # Convert sqlite:/// to sqlite+aiosqlite:/// for async support
+    if url.startswith("sqlite://"):
+        url = url.replace("sqlite://", "sqlite+aiosqlite://")
+    return url
 
 
 def run_migrations_offline() -> None:
@@ -46,26 +54,38 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
-def run_migrations_online() -> None:
-    """Run migrations in 'online' mode."""
+def do_run_migrations(connection: Connection) -> None:
+    """Execute migrations with the given connection."""
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        compare_type=True,
+    )
+
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+async def run_async_migrations() -> None:
+    """Run migrations in async mode."""
     configuration = config.get_section(config.config_ini_section) or {}
     configuration["sqlalchemy.url"] = get_url()
 
-    connectable = engine_from_config(
+    connectable = async_engine_from_config(
         configuration,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
 
-    with connectable.connect() as connection:
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata,
-            compare_type=True,
-        )
+    async with connectable.connect() as connection:
+        await connection.run_sync(do_run_migrations)
 
-        with context.begin_transaction():
-            context.run_migrations()
+    await connectable.dispose()
+
+
+def run_migrations_online() -> None:
+    """Run migrations in 'online' mode with async support."""
+    asyncio.run(run_async_migrations())
 
 
 if context.is_offline_mode():

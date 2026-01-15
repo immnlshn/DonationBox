@@ -1,52 +1,56 @@
-from typing import Generator
+from typing import AsyncGenerator
 
-from sqlalchemy import create_engine, event
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy import event
 
 from backend.settings import settings
 
 _is_sqlite = settings.DATABASE_URL.startswith("sqlite")
 
-# Engine configuration
-engine = create_engine(
-    settings.DATABASE_URL,
-    connect_args={"check_same_thread": False} if _is_sqlite else {},
+# Convert sqlite:/// to sqlite+aiosqlite:/// for async support
+async_db_url = settings.DATABASE_URL.replace("sqlite://", "sqlite+aiosqlite://") if _is_sqlite else settings.DATABASE_URL
+
+# Async Engine configuration
+engine = create_async_engine(
+    async_db_url,
+    echo=False,
     pool_pre_ping=True
 )
 
-# SQLite: Enable foreign keys
+# SQLite: Enable foreign keys (async version)
 if _is_sqlite:
-    @event.listens_for(engine, "connect")
+    @event.listens_for(engine.sync_engine, "connect")
     def _set_sqlite_pragma(dbapi_connection, _):
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
 
-# Session Factory
-SessionLocal = sessionmaker(
+# Async Session Factory
+AsyncSessionLocal = async_sessionmaker(
     bind=engine,
+    class_=AsyncSession,
     autoflush=False,
     autocommit=False,
     expire_on_commit=False,
 )
 
 
-def get_db() -> Generator[Session, None, None]:
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
-    FastAPI Dependency for Database Sessions.
+    FastAPI Dependency for Async Database Sessions.
 
-    Creates a new session for each request and closes it automatically.
+    Creates a new async session for each request and closes it automatically.
     Usage in routes:
         @router.get("/")
-        async def my_route(db: Session = Depends(get_db)):
+        async def my_route(db: AsyncSession = Depends(get_db)):
             ...
     """
-    db: Session = SessionLocal()
-    try:
-        yield db
-    except Exception:
-        # On error: Rollback
-        db.rollback()
-        raise
-    finally:
-        db.close()
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()

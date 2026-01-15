@@ -44,6 +44,7 @@ setuptools==80.9.0
 shellingham==1.5.4
 simple-websocket==1.1.0
 SQLAlchemy==2.0.45
+aiosqlite==0.20.0
 starlette==0.50.0
 typer==0.20.1
 typing-inspection==0.4.2

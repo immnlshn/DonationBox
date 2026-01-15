@@ -9,26 +9,26 @@ router = APIRouter()
 
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-  """
-  Handles a websocket connection endpoint for real-time communication.
+    """
+    WebSocket endpoint for real-time communication.
 
-  The function manages the websocket workflow, allowing clients to send and
-  receive messages. It facilitates broadcasting messages to all connected
-  clients or echoing messages back to the sending client. The connection
-  remains open until the client disconnects, enabling continuous communication.
+    Manages the WebSocket workflow, allowing clients to receive broadcast messages
+    about donations and vote updates. The connection remains open until the client
+    disconnects, enabling continuous communication.
 
-  This function uses the websocket_service module to handle connection
-  management, sending messages, and client disconnection.
+    Args:
+        websocket: WebSocket connection instance
 
-  :param websocket: An instance of WebSocket representing the client connection.
-  :type websocket: WebSocket
-  :return: None
-  """
-  logger.info("Client connected")
+    Returns:
+        None
+    """
+    logger.info("Client connected")
 
-  await websocket_service.connect(websocket)
-  try:
-    await websocket_service.listen_for_messages_json(websocket, echo=True, broadcast=True)
-  except WebSocketDisconnect:
-    await websocket_service.disconnect(websocket)
-    logger.info("Client disconnected")
+    await websocket_service.connect(websocket)
+    try:
+        await websocket_service.listen_for_messages_json(websocket)
+    except WebSocketDisconnect:
+        websocket_service.disconnect(websocket)
+        logger.info("Client disconnected")
+
+

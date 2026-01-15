@@ -22,7 +22,7 @@ class VotingService:
         """
         self.vote_repo = vote_repo
 
-    def create_vote(
+    async def create_vote(
         self,
         question: str,
         start_time: datetime,
@@ -43,7 +43,7 @@ class VotingService:
         Returns:
             The created Vote object
         """
-        return self.vote_repo.create(
+        return await self.vote_repo.create(
             question=question,
             start_time=start_time,
             end_time=end_time,
@@ -51,7 +51,7 @@ class VotingService:
             is_active=is_active,
         )
 
-    def get_vote_by_id(self, vote_id: int) -> Optional[Vote]:
+    async def get_vote_by_id(self, vote_id: int) -> Optional[Vote]:
         """
         Returns a voting by ID.
 
@@ -61,18 +61,18 @@ class VotingService:
         Returns:
             The Vote object or None if not found
         """
-        return self.vote_repo.get_by_id(vote_id)
+        return await self.vote_repo.get_by_id(vote_id)
 
-    def get_active_vote(self) -> Optional[Vote]:
+    async def get_active_vote(self) -> Optional[Vote]:
         """
         Returns the currently active voting.
 
         Returns:
             The active Vote object or None if none is active
         """
-        return self.vote_repo.get_active()
+        return await self.vote_repo.get_active()
 
-    def set_active_vote(self, vote_id: int) -> None:
+    async def set_active_vote(self, vote_id: int) -> None:
         """
         Sets a specific voting as active and deactivates all others.
 
@@ -82,9 +82,9 @@ class VotingService:
         Raises:
             NoResultFound: If no voting with the given ID exists
         """
-        self.vote_repo.set_active(vote_id)
+        await self.vote_repo.set_active(vote_id)
 
-    def list_votes(self, limit: int = 100, offset: int = 0) -> list[Vote]:
+    async def list_votes(self, limit: int = 100, offset: int = 0) -> list[Vote]:
         """
         Returns a list of all votings (paginated).
 
@@ -95,9 +95,9 @@ class VotingService:
         Returns:
             List of Vote objects
         """
-        return self.vote_repo.list_all(limit=limit, offset=offset)
+        return await self.vote_repo.list_all(limit=limit, offset=offset)
 
-    def delete_vote(self, vote_id: int) -> bool:
+    async def delete_vote(self, vote_id: int) -> bool:
         """
         Deletes a voting. All associated donations will also be deleted (CASCADE).
 
@@ -107,9 +107,9 @@ class VotingService:
         Returns:
             True if deleted, False if not found
         """
-        return self.vote_repo.delete(vote_id)
+        return await self.vote_repo.delete(vote_id)
 
-    def add_categories_to_vote(self, vote_id: int, category_ids: Iterable[int]) -> Vote:
+    async def add_categories_to_vote(self, vote_id: int, category_ids: Iterable[int]) -> Vote:
         """
         Adds additional categories to a voting.
 
@@ -123,9 +123,9 @@ class VotingService:
         Raises:
             NoResultFound: If no voting with the given ID exists
         """
-        return self.vote_repo.add_categories(vote_id, category_ids)
+        return await self.vote_repo.add_categories(vote_id, category_ids)
 
-    def remove_categories_from_vote(self, vote_id: int, category_ids: Iterable[int]) -> Vote:
+    async def remove_categories_from_vote(self, vote_id: int, category_ids: Iterable[int]) -> Vote:
         """
         Removes categories from a voting.
 
@@ -139,9 +139,9 @@ class VotingService:
         Raises:
             NoResultFound: If no voting with the given ID exists
         """
-        return self.vote_repo.remove_categories(vote_id, category_ids)
+        return await self.vote_repo.remove_categories(vote_id, category_ids)
 
-    def is_vote_running(self, vote_id: int) -> bool:
+    async def is_vote_running(self, vote_id: int) -> bool:
         """
         Checks if a voting is currently running (based on start_time and end_time).
 
@@ -151,13 +151,13 @@ class VotingService:
         Returns:
             True if the voting is running, False otherwise
         """
-        vote = self.get_vote_by_id(vote_id)
+        vote = await self.get_vote_by_id(vote_id)
         if not vote:
             return False
         now = datetime.now(vote.start_time.tzinfo or None)
         return vote.start_time <= now <= vote.end_time
 
-    def get_vote_categories(self, vote_id: int) -> list[Category]:
+    async def get_vote_categories(self, vote_id: int) -> list[Category]:
         """
         Returns all categories of a voting.
 
@@ -167,7 +167,7 @@ class VotingService:
         Returns:
             List of Category objects or empty list if voting does not exist
         """
-        vote = self.get_vote_by_id(vote_id)
+        vote = await self.get_vote_by_id(vote_id)
         if not vote:
             return []
         return vote.categories

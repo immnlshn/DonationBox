@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import select, func
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.database.repositories import BaseRepository
 from backend.models import Donation, Category
@@ -21,10 +21,10 @@ def utcnow() -> datetime:
 class DonationRepository(BaseRepository[Donation]):
     """Repository for Donation entity operations."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         super().__init__(db, Donation)
 
-    def create(
+    async def create(
         self,
         vote_id: int,
         category_id: int,
@@ -50,11 +50,11 @@ class DonationRepository(BaseRepository[Donation]):
             timestamp=timestamp or utcnow(),
         )
         self.db.add(donation)
-        self.commit()
-        self.refresh(donation)
+        await self.commit()
+        await self.refresh(donation)
         return donation
 
-    def list_for_vote(self, vote_id: int) -> list[Donation]:
+    async def list_for_vote(self, vote_id: int) -> list[Donation]:
         """
         List all donations for a specific vote.
 
@@ -65,9 +65,10 @@ class DonationRepository(BaseRepository[Donation]):
             List of Donation entities
         """
         stmt = select(Donation).where(Donation.vote_id == vote_id).order_by(Donation.id.asc())
-        return list(self.db.execute(stmt).scalars().all())
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
 
-    def get_totals_for_vote(self, vote_id: int) -> dict:
+    async def get_totals_for_vote(self, vote_id: int) -> dict:
         """
         Calculate donation totals for a vote.
 
@@ -83,7 +84,8 @@ class DonationRepository(BaseRepository[Donation]):
         total_stmt = select(
             func.coalesce(func.sum(Donation.amount), 0)
         ).where(Donation.vote_id == vote_id)
-        total_amount = int(self.db.execute(total_stmt).scalar_one())
+        result = await self.db.execute(total_stmt)
+        total_amount = int(result.scalar_one())
 
         by_cat_stmt = (
             select(
@@ -98,7 +100,8 @@ class DonationRepository(BaseRepository[Donation]):
             .order_by(Donation.category_id.asc())
         )
 
-        rows = self.db.execute(by_cat_stmt).all()
+        result = await self.db.execute(by_cat_stmt)
+        rows = result.all()
         by_category = [
             {
                 "category_id": int(r.category_id),

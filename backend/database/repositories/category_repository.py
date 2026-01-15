@@ -6,7 +6,7 @@ from __future__ import annotations
 from typing import Optional
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.database.repositories import BaseRepository
 from backend.models import Category
@@ -15,10 +15,10 @@ from backend.models import Category
 class CategoryRepository(BaseRepository[Category]):
     """Repository for Category entity operations."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         super().__init__(db, Category)
 
-    def create(self, name: str) -> Category:
+    async def create(self, name: str) -> Category:
         """
         Create a new category.
 
@@ -30,11 +30,11 @@ class CategoryRepository(BaseRepository[Category]):
         """
         category = Category(name=name)
         self.db.add(category)
-        self.commit()
-        self.refresh(category)
+        await self.commit()
+        await self.refresh(category)
         return category
 
-    def get_by_name(self, name: str) -> Optional[Category]:
+    async def get_by_name(self, name: str) -> Optional[Category]:
         """
         Get category by name.
 
@@ -45,9 +45,10 @@ class CategoryRepository(BaseRepository[Category]):
             Category or None if not found
         """
         stmt = select(Category).where(Category.name == name)
-        return self.db.execute(stmt).scalars().first()
+        result = await self.db.execute(stmt)
+        return result.scalars().first()
 
-    def list_all(self) -> list[Category]:
+    async def list_all(self) -> list[Category]:
         """
         List all categories.
 
@@ -55,9 +56,10 @@ class CategoryRepository(BaseRepository[Category]):
             List of Category entities
         """
         stmt = select(Category).order_by(Category.id.asc())
-        return list(self.db.execute(stmt).scalars().all())
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
 
-    def delete(self, category_id: int) -> bool:
+    async def delete(self, category_id: int) -> bool:
         """
         Delete a category.
 
@@ -69,10 +71,10 @@ class CategoryRepository(BaseRepository[Category]):
         Returns:
             True if deleted, False if not found
         """
-        category = self.get_by_id(category_id)
+        category = await self.get_by_id(category_id)
         if not category:
             return False
-        self.db.delete(category)
-        self.commit()
+        await self.db.delete(category)
+        await self.commit()
         return True
 

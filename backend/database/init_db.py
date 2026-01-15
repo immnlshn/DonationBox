@@ -6,7 +6,7 @@ from alembic import command
 from alembic.config import Config
 
 
-def run_migrations() -> None:
+async def run_migrations() -> None:
     """
     Runs `alembic upgrade head` programmatically.
     """
@@ -28,4 +28,4 @@ def run_migrations() -> None:
         os.path.join(backend_dir, "alembic"),
     )
 
-    command.upgrade(alembic_cfg, "head")
+    await command.upgrade(alembic_cfg, "head")
