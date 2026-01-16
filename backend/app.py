@@ -27,10 +27,6 @@ logger.info(f"LOG_LEVEL={settings.LOG_LEVEL}")
 @asynccontextmanager
 async def lifespan(_):
     # Startup
-    logger.info("Running DB migrations...")
-    # await run_migrations()
-    logger.info("DB migrations done.")
-
     logger.info("Starting GPIO Service...")
     gpio_service.initialize(enable_gpio=settings.ENABLE_GPIO, pin_factory=settings.PIN_FACTORY)
     await gpio_service.start_background_task()

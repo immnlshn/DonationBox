@@ -340,3 +340,12 @@
 
   .fill { transition: none !important; }
 }
+
+.popup-text-description {
+  font-size: 1.5rem;
+}
+
+.popup-text-muted {
+  font-size: 1.25rem;
+  color: var(--muted);
+}

@@ -8,8 +8,8 @@ from datetime import datetime
 from typing import Optional
 
 from backend.database.repositories.donation_repository import DonationRepository
-from backend.database.repositories.vote_repository import VoteRepository
-from backend.database.repositories.category_repository import CategoryRepository
+from backend.services.voting import VotingService
+from backend.services.websocket import WebSocketService
 from backend.models import Donation
 
 logger = logging.getLogger(__name__)
@@ -21,22 +21,19 @@ class DonationService:
     def __init__(
         self,
         donation_repo: DonationRepository,
-        vote_repo: VoteRepository,
-        category_repo: CategoryRepository,
-        websocket_service,  # WebSocketService - avoid circular import
+        voting_service: VotingService,
+        websocket_service: WebSocketService,
     ):
         """
-        Initialize DonationService with repositories and WebSocketService.
+        Initialize DonationService with repository and services.
 
         Args:
             donation_repo: DonationRepository instance
-            vote_repo: VoteRepository instance
-            category_repo: CategoryRepository instance
+            voting_service: VotingService instance for vote-related operations
             websocket_service: WebSocketService instance for broadcasting
         """
         self.donation_repo = donation_repo
-        self.vote_repo = vote_repo
-        self.category_repo = category_repo
+        self.voting_service = voting_service
         self.websocket_service = websocket_service
 
     async def create_donation(
@@ -148,7 +145,7 @@ class DonationService:
         Returns:
             Dictionary with statistics or None if no voting is active
         """
-        active_vote = await self.vote_repo.get_active()
+        active_vote = await self.voting_service.get_active_vote()
         if not active_vote:
             return None
         return await self.donation_repo.get_totals_for_vote(active_vote.id)
@@ -173,7 +170,7 @@ class DonationService:
         Raises:
             IntegrityError: If category_id does not exist or does not belong to the voting
         """
-        active_vote = await self.vote_repo.get_active()
+        active_vote = await self.voting_service.get_active_vote()
         if not active_vote:
             logger.warning("Cannot create donation: No active vote exists")
             return None

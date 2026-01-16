@@ -1,8 +1,7 @@
 """
-Services for Voting and Donation Management.
+Services for Voting Management.
 """
 from .VotingService import VotingService
-from backend.services.donation.DonationService import DonationService
 
-__all__ = ["VotingService", "DonationService"]
+__all__ = ["VotingService"]
 
