@@ -8,7 +8,7 @@ from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.database.repositories import BaseRepository
+from .base_repository import BaseRepository
 from backend.models import Category
 
 

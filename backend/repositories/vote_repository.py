@@ -10,7 +10,7 @@ from sqlalchemy import select, update
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.database.repositories import BaseRepository
+from .base_repository import BaseRepository
 from backend.models import Vote, Category
 
 

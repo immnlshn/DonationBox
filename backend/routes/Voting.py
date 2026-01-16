@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from backend.services.dependencies import get_voting_service, get_donation_service
@@ -51,7 +51,11 @@ async def get_current_vote(
     """
     vote = await voting_service.get_active_vote()
     if not vote:
-        return None
+        logger.warning("No active vote found")
+        raise HTTPException(
+            status_code=400,
+            detail="No active vote found"
+        )
     return vote
 
 @router.get('/{vote_id}/totals', response_model=DonationTotalsResponse)

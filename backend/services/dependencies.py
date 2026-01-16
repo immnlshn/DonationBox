@@ -14,9 +14,9 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.database.session import get_db
-from backend.database.repositories.vote_repository import VoteRepository
-from backend.database.repositories.donation_repository import DonationRepository
-from backend.database.repositories.category_repository import CategoryRepository
+from backend.repositories import VoteRepository
+from backend.repositories import DonationRepository
+from backend.repositories.category_repository import CategoryRepository
 from backend.services.voting.VotingService import VotingService
 from backend.services.donation.DonationService import DonationService
 from backend.services.websocket.WebSocketService import websocket_service, WebSocketService

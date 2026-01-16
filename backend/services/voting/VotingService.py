@@ -6,7 +6,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional, Iterable
 
-from backend.database.repositories.vote_repository import VoteRepository
+from backend.repositories import VoteRepository
 from backend.models import Vote, Category
 
 

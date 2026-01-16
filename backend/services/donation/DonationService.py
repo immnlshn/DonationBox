@@ -7,7 +7,7 @@ import logging
 from datetime import datetime
 from typing import Optional
 
-from backend.database.repositories.donation_repository import DonationRepository
+from backend.repositories import DonationRepository
 from backend.services.voting import VotingService
 from backend.services.websocket import WebSocketService
 from backend.models import Donation
