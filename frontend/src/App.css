@@ -1,11 +1,5 @@
-/* =========================
-cd frontend
-npm run dev
-http://localhost:5173/
-========================= */
-
 :root{
-  --bg: #fffffff;
+  --bg: #ffffff;
   --text: #0f172a;
   --muted: #5b6b86;
 

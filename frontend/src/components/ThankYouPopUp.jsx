@@ -1,4 +1,4 @@
-import ballons from "../assets/ballon.png";
+import balloons from "../assets/balloons.png";
 
 export default function ThankYouPopUp({donationData}) {
   return (
@@ -6,8 +6,8 @@ export default function ThankYouPopUp({donationData}) {
         <div className="popup-inner">
           <div className="popup-content">
             <h1 className="popup-header">Vielen Dank für Ihre Spende!</h1>
-            <img src={ballons} alt="balloons" className="popup-image"/>
-            <p className="popup-text-description">Sie haben {donationData.amount}€ für "{donationData.categorie}"
+            <img src={balloons} alt="balloons" className="popup-image"/>
+            <p className="popup-text-description">Sie haben {donationData.amount}€ für "{donationData.category}"
               gespendet.</p>
           </div>
           <div className="popup-footer">

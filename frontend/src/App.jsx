@@ -34,7 +34,7 @@ export default function App() {
 
   return (
     <div className="page">
-      {popUpShown && <ThankYouPopUp donationData={{amount: 100, categorie: "Messi"}}/>}
+      {popUpShown && <ThankYouPopUp donationData={{amount: 100, category: "Messi"}}/>}
       <header className="header">
         <div className="brand">
           {/* Logo oben entfernt, Text bleibt */}
