@@ -3,8 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.database.init_db import run_migrations
-from backend.services.gpio.GPIOService import gpio_service
+from .services.gpio.GPIOService import gpio_service
 from .routes import api_router
 from .services.dependencies import get_websocket_service
 from .settings import settings

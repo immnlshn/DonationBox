@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Iterable, Optional
 
-from sqlalchemy import Select, delete, func, select, update
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 

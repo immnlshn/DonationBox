@@ -11,7 +11,7 @@ export default function DonationSummary({ recentDonations, totalAmount, totalDon
             </div>
 
             <p className="total-amount">
-                Wir haben bereits insgesamt <strong>${totalAmount}</strong> mit{' '}
+                Wir haben bereits insgesamt <strong>{totalAmount} €</strong> mit{' '}
                 <strong>{totalDonationsCount}</strong> Spenden gesammelt.
             </p>
         </section>

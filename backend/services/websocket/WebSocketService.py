@@ -114,7 +114,7 @@ class WebSocketService:
             asyncio.get_running_loop()
             # We're in an async context - schedule the broadcast task
             # Store task reference to prevent premature garbage collection
-            _task = asyncio.create_task(self.broadcast_json(data))
+            _ = asyncio.create_task(self.broadcast_json(data))
             logger.debug(f"Broadcast scheduled in event loop, {len(self._connections)} connections")
         except RuntimeError:
             # No running event loop - shouldn't happen in FastAPI but log it

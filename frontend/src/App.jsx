@@ -1,4 +1,3 @@
-// Neccessary imports
 import "./App.css";
 
 import DonationQuestion from "./components/DonationQuestion.jsx";
@@ -6,7 +5,7 @@ import DonationSummary from "./components/DonationSummary.jsx";
 import DonationTarget from "./components/DonationTarget.jsx";
 import QRCodeInfo from "./components/QRCodeInfo.jsx";
 import CallToDonate from "./components/CallToDonate.jsx";
-import VotingResultsChart from "./components/ResultBars.jsx";
+import VotingResultsChart from "./components/VotingResultsChart.jsx";
 
 import qrCodeSvg from "./assets/qrcode.svg";
 
@@ -14,8 +13,8 @@ export default function App() {
   // Hardcoded values for demonstration, can be replaced with dynamic data
   const questionText = "Wer ist der GOAT im Fußball?";
 
-  const recentDonations = ["1€", "2€", "0,50€"];
-  const totalAmount = "97,25€";
+  const recentDonations = ["1 €", "2 €", "0,50 €"];
+  const totalAmount = "97,25 €";
   const totalDonationsCount = 105;
 
   const charityName = "Tierheim Dellbrück e.V.";
@@ -26,8 +25,8 @@ export default function App() {
   const callToActionText = "Unterstützen Sie unsere Sache heute!";
 
   const results = [
-    { name: "Lionel Messi", amount: "65,00€", percent: 70 },
-    { name: "Cristiano Ronaldo", amount: "32,25€", percent: 35 },
+    { name: "Lionel Messi", amount: "65,00 €", percent: 70 },
+    { name: "Cristiano Ronaldo", amount: "32,25 €", percent: 35 },
   ];
 
   return (
