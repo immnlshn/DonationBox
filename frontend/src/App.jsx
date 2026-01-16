@@ -1,3 +1,4 @@
+// Neccessary imports
 import "./App.css";
 
 import DonationQuestion from "./components/DonationQuestion.jsx";
@@ -7,92 +8,49 @@ import QRCodeInfo from "./components/QRCodeInfo.jsx";
 import CallToDonate from "./components/CallToDonate.jsx";
 import VotingResultsChart from "./components/ResultBars.jsx";
 
-import clubLogo from "./assets/logo.png"; // bleibt für QRCodeInfo
 import qrCodeSvg from "./assets/qrcode.svg";
-import ThankYouPopUp from "./components/ThankYouPopUp.jsx";
 
 export default function App() {
+  // Hardcoded values for demonstration, can be replaced with dynamic data
   const questionText = "Wer ist der GOAT im Fußball?";
 
   const recentDonations = ["1€", "2€", "0,50€"];
   const totalAmount = "97,25€";
   const totalDonationsCount = 105;
 
-  const charityName = "Lobby für Mädchen- Mädchenhaus Köln e.V.";
+  const charityName = "Tierheim Dellbrück e.V.";
+
   const qrInfoText =
     "Scannen Sie den QR-Code, um mehr über die Spendenorganisation zu erfahren.";
 
-  const callToActionText = "Spenden Sie Ihr Bargeld und stimmen Sie ab!";
+  const callToActionText = "Unterstützen Sie unsere Sache heute!";
 
-  // NUR Prozent für die Balken
   const results = [
-    { name: "Lionel Messi", percent: 70.5 },
-    { name: "Cristiano Ronaldo", percent: 29.5 },
+    { name: "Lionel Messi", amount: "65,00€", percent: 70 },
+    { name: "Cristiano Ronaldo", amount: "32,25€", percent: 35 },
   ];
 
-  const popUpShown = false;
-
   return (
-    <div className="page">
-      {popUpShown && <ThankYouPopUp donationData={{amount: 100, category: "Messi"}}/>}
-      <header className="header">
-        <div className="brand">
-          {/* Logo oben entfernt, Text bleibt */}
-          <div className="brand-text">
-            <div className="brand-title">Spendenbasierte Abstimmung</div>
-            <div className="brand-subtitle">Projekt von Studenten der UzK</div>
-          </div>
-        </div>
+    <div className="main-page">
+      <DonationQuestion text={questionText} />
 
-        <div className="stats">
-          <div className="stat">
-            <div className="stat-label">Gesamt</div>
-            <div className="stat-value">{totalAmount}</div>
-          </div>
-          <div className="stat">
-            <div className="stat-label">Spenden</div>
-            <div className="stat-value">{totalDonationsCount}</div>
-          </div>
-        </div>
-      </header>
+      <DonationSummary
+        recentDonations={recentDonations}
+        totalAmount={totalAmount}
+        totalDonationsCount={totalDonationsCount}
+      />
 
-      <main className="stack">
-        <section className="card card-hero">
-          <DonationQuestion text={questionText} />
-        </section>
+      <DonationTarget charityName={charityName} />
 
-        <section className="card">
-          {/* Damit der Satz "Wir haben bereits ..." nicht erscheint:
-              totalAmount/totalDonationsCount nicht an DonationSummary übergeben */}
-          <DonationSummary recentDonations={recentDonations} />
-        </section>
+      <QRCodeInfo
+        qrImageSrc={qrCodeSvg}
+        qrInfoText={qrInfoText}
+        alt="QR Code for more information"
+      />
 
-        <section className="card">
-          <div className="donation-info">
-            <QRCodeInfo
-               qrImageSrc={qrCodeSvg}
-               clubLogoSrc={clubLogo}
-               qrInfoText={qrInfoText}
-              alt="QR Code for more information"
-         >
-              <DonationTarget charityName={charityName} />
-        </QRCodeInfo>
-      </div>
+      <CallToDonate text={callToActionText} />
 
-        </section>
-
-        <section className="card card-cta">
-          <CallToDonate text={callToActionText} />
-        </section>
-
-        <section className="card">
-          <div className="section-head">
-            <h2 className="section-title">Aktueller Stand</h2>
-            {/* "Ergebnis der Abstimmung (in Prozent)" entfernt */}
-          </div>
-          <VotingResultsChart results={results} />
-        </section>
-      </main>
+      <VotingResultsChart results={results} />
     </div>
   );
 }
