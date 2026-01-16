@@ -5,8 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from backend.services.dependencies import get_voting_service, get_donation_service
-from backend.services.voting.VotingService import VotingService
-from backend.services.donation.DonationService import DonationService
+from backend.services.voting import VotingService
+from backend.services.donation import DonationService
 
 logger = logging.getLogger(__name__)
 
