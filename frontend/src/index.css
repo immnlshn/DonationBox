@@ -1,68 +1,52 @@
+/* ---------- Global Reset ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  /* Core */
+  --bg: #f3f6fb;
+  --card: rgba(255, 255, 255, 0.86);
+  --card-solid: #ffffff;
+  --text: #111827;
+  --muted: #64748b;
+  --border: rgba(15, 23, 42, 0.10);
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* Gamification accents */
+  --accent-cta-1: #ff6a3d;
+  --accent-cta-2: #ff8b3d;
+  --accent-purple: #7c3aed;
+  --accent-cyan: #06b6d4;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* Bars */
+  --bar-bg: rgba(148, 163, 184, 0.28);
+  --bar-fill: linear-gradient(
+    180deg,
+    rgba(124, 58, 237, 0.92),
+    rgba(255, 106, 61, 0.92)
+  );
+
+  /* Radius & shadow */
+  --radius: 18px;
+  --radius-lg: 22px;
+  --shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+  --shadow-soft: 0 10px 26px rgba(15, 23, 42, 0.10);
+
+  /* Layout */
+  --page-width: min(980px, 98vw);
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+html,
+body {
+  height: 100%;
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--text);
+  background: #eef4fb; /* ganz leicht hellblau */
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
