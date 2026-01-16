@@ -53,7 +53,7 @@ async def get_current_vote(
     if not vote:
         logger.warning("No active vote found")
         raise HTTPException(
-            status_code=400,
+            status_code=404,
             detail="No active vote found"
         )
     return vote

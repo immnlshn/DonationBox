@@ -57,7 +57,7 @@ async def send_donation(
     if donation is None:
         logger.warning("No active vote found for donation")
         raise HTTPException(
-            status_code=400,
+            status_code=404,
             detail="No active vote available. Please activate a vote first."
         )
 
