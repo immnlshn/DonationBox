@@ -324,8 +324,17 @@ cd frontend
 
 ## 📧 Contact
 
-[Add contact information here]
+This project is part of a university group project at the **University of Cologne** and the **Cologne Institute for Information Systems (CIIS)**, conducted within the course [**Sustainable Digital Innovation Lab (SDIL)**](https://ciis.uni-koeln.de/en/teaching/master-and-phd-courses/sustainable-digital-innovation-lab) by the following contributors:
 
+- **Immanuel Sohn**:<br>
+  📧 [isohn@smail.uni-koeln.de](mailto:isohn@smail.uni-koeln.de)
+- **Chiara Döring**:<br>
+  📧 [cdoerin1@smail.uni-koeln.de](mailto:cdoerin1@smail.uni-koeln.de)
+- **Luca Schröder**:<br>
+  📧 [lschro34@smail.uni-koeln.de](mailto:lschro34@smail.uni-koeln.de)
+- **Marlon Spiess**:<br>
+  📧 [mspiess1@smail.uni-koeln.de](mailto:mspiess1@smail.uni-koeln.de)  
+  
 ## 🙏 Acknowledgments
 
 - Built with [FastAPI](https://fastapi.tiangolo.com/)
