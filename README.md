@@ -316,7 +316,9 @@ cd frontend
 
 ## 📝 License
 
-[Add your license information here]
+[![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+This project is licensed under the [MIT License](LICENSE). You are free to use, modify, and distribute this software under the conditions stated in the LICENSE file.
 
 ## 🤝 Contributing
 
