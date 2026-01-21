@@ -7,7 +7,7 @@ import QRCodeInfo from "./components/QRCodeInfo.jsx";
 import CallToDonate from "./components/CallToDonate.jsx";
 import VotingResultsChart from "./components/ResultBars.jsx";
 
-import clubLogo from "./assets/logo.png"; // bleibt für QRCodeInfo
+import clubLogo from "./assets/logo.png";
 import qrCodeSvg from "./assets/qrcode.svg";
 
 export default function App() {
@@ -23,7 +23,6 @@ export default function App() {
 
   const callToActionText = "Spenden Sie Ihr Bargeld und stimmen Sie ab!";
 
-  // NUR Prozent für die Balken
   const results = [
     { name: "Lionel Messi", percent: 70.5 },
     { name: "Cristiano Ronaldo", percent: 29.5 },
@@ -33,7 +32,6 @@ export default function App() {
     <div className="page">
       <header className="header">
         <div className="brand">
-          {/* Logo oben entfernt, Text bleibt */}
           <div className="brand-text">
             <div className="brand-title">Spendenbasierte Abstimmung</div>
             <div className="brand-subtitle">Projekt von Studenten der UzK</div>
@@ -53,40 +51,41 @@ export default function App() {
       </header>
 
       <main className="stack">
-        <section className="card card-hero">
-          <DonationQuestion text={questionText} />
-        </section>
-
-        <section className="card">
-          {/* Damit der Satz "Wir haben bereits ..." nicht erscheint:
-              totalAmount/totalDonationsCount nicht an DonationSummary übergeben */}
-          <DonationSummary recentDonations={recentDonations} />
-        </section>
-
-        <section className="card">
-          <div className="donation-info">
-            <QRCodeInfo
-               qrImageSrc={qrCodeSvg}
-               clubLogoSrc={clubLogo}
-               qrInfoText={qrInfoText}
-              alt="QR Code for more information"
-         >
-              <DonationTarget charityName={charityName} />
-        </QRCodeInfo>
-      </div>
-
-        </section>
-
+        {/* Call to Action – gleicher Stil, nur anderer Ort */}
         <section className="card card-cta">
           <CallToDonate text={callToActionText} />
         </section>
 
+        {/* Frage */}
+        <section className="card card-hero">
+          <DonationQuestion text={questionText} />
+        </section>
+
+        {/* Aktueller Stand */}
         <section className="card">
           <div className="section-head">
             <h2 className="section-title">Aktueller Stand</h2>
-            {/* "Ergebnis der Abstimmung (in Prozent)" entfernt */}
           </div>
           <VotingResultsChart results={results} />
+        </section>
+
+        {/* Letzte Spenden */}
+        <section className="card">
+          <DonationSummary recentDonations={recentDonations} />
+        </section>
+
+        {/* QR / Spendenziel */}
+        <section className="card">
+          <div className="donation-info">
+            <QRCodeInfo
+              qrImageSrc={qrCodeSvg}
+              clubLogoSrc={clubLogo}
+              qrInfoText={qrInfoText}
+              alt="QR Code for more information"
+            >
+              <DonationTarget charityName={charityName} />
+            </QRCodeInfo>
+          </div>
         </section>
       </main>
     </div>
