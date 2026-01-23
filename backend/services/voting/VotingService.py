@@ -4,17 +4,15 @@ VotingService - Manages the creation, activation and management of votings.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional, Iterable
+from typing import Optional, Iterable, Protocol
 
 from backend.repositories import VoteRepository, CategoryRepository
 from backend.models import Vote
 
 
-class CategoryInput:
-    """Input data for category - either existing ID or name to create/find."""
-    def __init__(self, id: Optional[int] = None, name: str = ""):
-        self.id = id
-        self.name = name
+class CategoryInput(Protocol):
+    """Protocol for category input - any object with a 'name' attribute."""
+    name: str
 
 
 class VotingService:
@@ -33,9 +31,8 @@ class VotingService:
 
     async def _resolve_categories(self, category_inputs: Iterable[CategoryInput]) -> list[int]:
         """
-        Resolves category inputs to category IDs.
-        If ID is provided, uses existing category.
-        If only name is provided, creates new category or finds existing by name.
+        Resolves category names to category IDs.
+        Uses get_or_create to handle race conditions safely.
 
         Args:
             category_inputs: List of CategoryInput objects
@@ -45,17 +42,11 @@ class VotingService:
         """
         category_ids = []
         for cat_input in category_inputs:
-            if cat_input.id is not None:
-                # Use existing category ID
-                category_ids.append(cat_input.id)
-            elif cat_input.name:
-                # Find or create category by name
-                existing = await self.category_repo.get_by_name(cat_input.name)
-                if existing:
-                    category_ids.append(existing.id)
-                else:
-                    new_cat = await self.category_repo.create(cat_input.name)
-                    category_ids.append(new_cat.id)
+            name = cat_input.name.strip()
+
+            # Get or create category atomically
+            category = await self.category_repo.get_or_create(name)
+            category_ids.append(category.id)
         return category_ids
 
     async def create_vote(
@@ -74,7 +65,7 @@ class VotingService:
             question: The question/description of the voting
             start_time: Start time of the voting
             end_time: End time of the voting
-            categories: List of CategoryInput (id or name)
+            categories: List of CategoryInput (name only, backend resolves/creates)
 
         Returns:
             The created Vote object

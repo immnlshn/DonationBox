@@ -4,6 +4,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy.exc import NoResultFound
 
 from backend.services.dependencies import get_voting_service, get_donation_service
 from backend.services.voting import VotingService
@@ -16,8 +17,7 @@ router = APIRouter()
 
 # Request Models
 class CategoryInput(BaseModel):
-    """Input for creating or referencing a category."""
-    id: Optional[int] = None
+    """Input for creating or referencing a category by name."""
     name: str
 
 
@@ -49,7 +49,6 @@ class VoteResponse(BaseModel):
     question: str
     start_time: datetime
     end_time: datetime
-    is_active: bool
     categories: list[CategoryResponse]
 
     class Config:
@@ -128,6 +127,7 @@ async def list_all_votes(
     Args:
         limit: Maximum number of votings to return (default: 100)
         offset: Number of votings to skip (default: 0)
+        voting_service: Injected VotingService
 
     Returns:
         List of Vote objects
@@ -146,12 +146,12 @@ async def create_vote(
 
     The vote will be automatically active based on start_time and end_time.
 
-    Categories can be provided as:
-    - Existing category: {"id": 1, "name": "Tierschutz"}
-    - New category: {"name": "Neue Kategorie"} (will be created if not exists)
+    Categories are provided by name only:
+    - {"name": "Tierschutz"} - Backend will find existing or create new category
 
     Args:
         request: CreateVoteRequest with vote details
+        voting_service: Injected VotingService
 
     Returns:
         The created Vote object
@@ -159,24 +159,29 @@ async def create_vote(
     Raises:
         HTTPException 400: If validation fails
     """
+    # Validate category names
+    for cat in request.categories:
+        if not cat.name or not cat.name.strip():
+            raise HTTPException(
+                status_code=422,
+                detail="Category name must not be empty"
+            )
+
     try:
-        # Import CategoryInput from service
-        from backend.services.voting.VotingService import CategoryInput
-
-        # Convert request categories to service CategoryInput
-        categories = [
-            CategoryInput(id=cat.id, name=cat.name)
-            for cat in request.categories
-        ]
-
         vote = await voting_service.create_vote(
             question=request.question,
             start_time=request.start_time,
             end_time=request.end_time,
-            categories=categories,
+            categories=request.categories,
         )
         logger.info(f"Vote created: id={vote.id}, question='{vote.question}'")
         return vote
+    except ValueError as e:
+        logger.warning(f"Validation error creating vote: {e}")
+        raise HTTPException(
+            status_code=422,
+            detail=str(e)
+        )
     except Exception as e:
         logger.error(f"Failed to create vote: {e}", exc_info=True)
         raise HTTPException(
@@ -195,6 +200,7 @@ async def get_vote_by_id(
 
     Args:
         vote_id: The ID of the voting
+        voting_service: Injected VotingService
 
     Returns:
         The Vote object
@@ -220,13 +226,13 @@ async def update_vote(
     """
     Updates an existing voting.
 
-    Categories can be provided as:
-    - Existing category: {"id": 1, "name": "Tierschutz"}
-    - New category: {"name": "Neue Kategorie"} (will be created if not exists)
+    Categories are provided by name only:
+    - {"name": "Tierschutz"} - Backend will find existing or create new category
 
     Args:
         vote_id: The ID of the voting to update
         request: UpdateVoteRequest with fields to update
+        voting_service: Injected VotingService
 
     Returns:
         The updated Vote object
@@ -235,32 +241,39 @@ async def update_vote(
         HTTPException 404: If vote is not found
         HTTPException 400: If validation fails
     """
-    try:
-        # Convert request categories to service CategoryInput if provided
-        categories = None
-        if request.categories is not None:
-            from backend.services.voting.VotingService import CategoryInput
-            categories = [
-                CategoryInput(id=cat.id, name=cat.name)
-                for cat in request.categories
-            ]
+    # Validate category names if provided
+    if request.categories is not None:
+        for cat in request.categories:
+            if not cat.name or not cat.name.strip():
+                raise HTTPException(
+                    status_code=422,
+                    detail="Category name must not be empty"
+                )
 
+    try:
         vote = await voting_service.update_vote(
             vote_id=vote_id,
             question=request.question,
             start_time=request.start_time,
             end_time=request.end_time,
-            categories=categories,
+            categories=request.categories,
         )
         logger.info(f"Vote updated: id={vote.id}")
         return vote
+    except NoResultFound:
+        logger.warning(f"Vote with id {vote_id} not found")
+        raise HTTPException(
+            status_code=404,
+            detail=f"Vote with id {vote_id} not found"
+        )
+    except ValueError as e:
+        logger.warning(f"Validation error updating vote {vote_id}: {e}")
+        raise HTTPException(
+            status_code=422,
+            detail=str(e)
+        )
     except Exception as e:
         logger.error(f"Failed to update vote {vote_id}: {e}", exc_info=True)
-        if "not found" in str(e).lower():
-            raise HTTPException(
-                status_code=404,
-                detail=f"Vote with id {vote_id} not found"
-            )
         raise HTTPException(
             status_code=400,
             detail=f"Failed to update vote: {str(e)}"
@@ -277,6 +290,7 @@ async def delete_vote(
 
     Args:
         vote_id: The ID of the voting to delete
+        voting_service: Injected VotingService
 
     Raises:
         HTTPException 404: If vote is not found
@@ -300,6 +314,7 @@ async def get_vote_totals(
 
     Args:
         vote_id: The ID of the voting
+        donation_service: Injected DonationService
 
     Returns:
         Totals with total amount and amounts per category
@@ -309,12 +324,3 @@ async def get_vote_totals(
         vote_id=vote_id,
         **totals
     )
-
-
-
-
-
-
-
-
-

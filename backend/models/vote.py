@@ -26,7 +26,6 @@ class Vote(Base):
 
     start_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     end_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # relationships
     categories: Mapped[list["Category"]] = relationship(

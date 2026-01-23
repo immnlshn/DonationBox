@@ -3,7 +3,7 @@ Vote Repository - Handles all database operations for Vote entities.
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Iterable
 
 from sqlalchemy import select
@@ -38,7 +38,16 @@ class VoteRepository(BaseRepository[Vote]):
 
         Returns:
             Created Vote entity
+
+        Raises:
+            ValueError: If start_time is not before end_time
         """
+        # Validate that start_time is before end_time
+        if start_time >= end_time:
+            raise ValueError(
+                f"start_time ({start_time}) must be before end_time ({end_time})"
+            )
+
         vote = Vote(
             question=question,
             start_time=start_time,
@@ -79,6 +88,7 @@ class VoteRepository(BaseRepository[Vote]):
 
         Raises:
             NoResultFound: If vote doesn't exist
+            ValueError: If start_time is not before end_time
         """
         vote = await self.get_by_id(vote_id)
         if not vote:
@@ -97,6 +107,12 @@ class VoteRepository(BaseRepository[Vote]):
             categories = list(result.scalars().all())
             vote.categories = categories
 
+        # Validate that start_time is before end_time
+        if vote.start_time >= vote.end_time:
+            raise ValueError(
+                f"start_time ({vote.start_time}) must be before end_time ({vote.end_time})"
+            )
+
         await self.commit()
         await self.refresh(vote)
         return vote
@@ -110,7 +126,6 @@ class VoteRepository(BaseRepository[Vote]):
         Returns:
             Active Vote or None if no vote is currently active
         """
-        from datetime import datetime, timezone
         now = datetime.now(timezone.utc)
 
         stmt = (

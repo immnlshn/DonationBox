@@ -6,6 +6,7 @@ from __future__ import annotations
 from typing import Optional
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .base_repository import BaseRepository
@@ -47,6 +48,41 @@ class CategoryRepository(BaseRepository[Category]):
         stmt = select(Category).where(Category.name == name)
         result = await self.db.execute(stmt)
         return result.scalars().first()
+
+    async def get_or_create(self, name: str) -> Category:
+        """
+        Get existing category by name or create it if it doesn't exist.
+
+        This method handles race conditions by catching IntegrityError
+        (unique constraint violation) and retrying the get operation.
+
+        Args:
+            name: Category name
+
+        Returns:
+            Category entity (existing or newly created)
+        """
+        # First, try to get existing category
+        existing = await self.get_by_name(name)
+        if existing:
+            return existing
+
+        # Try to create new category
+        try:
+            category = Category(name=name)
+            self.db.add(category)
+            await self.commit()
+            await self.refresh(category)
+            return category
+        except IntegrityError:
+            # Another transaction created this category between our check and insert
+            # Rollback and fetch the existing one
+            await self.db.rollback()
+            existing = await self.get_by_name(name)
+            if existing:
+                return existing
+            # If still not found, something else went wrong, re-raise
+            raise
 
     async def list_all(self) -> list[Category]:
         """
