@@ -6,49 +6,121 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional, Iterable
 
-from backend.repositories import VoteRepository
-from backend.models import Vote, Category
+from backend.repositories import VoteRepository, CategoryRepository
+from backend.models import Vote
+
+
+class CategoryInput:
+    """Input data for category - either existing ID or name to create/find."""
+    def __init__(self, id: Optional[int] = None, name: str = ""):
+        self.id = id
+        self.name = name
 
 
 class VotingService:
     """Service for managing votings (polls)."""
 
-    def __init__(self, vote_repo: VoteRepository):
+    def __init__(self, vote_repo: VoteRepository, category_repo: CategoryRepository):
         """
-        Initialize VotingService with repository.
+        Initialize VotingService with repositories.
 
         Args:
             vote_repo: VoteRepository instance
+            category_repo: CategoryRepository instance
         """
         self.vote_repo = vote_repo
+        self.category_repo = category_repo
+
+    async def _resolve_categories(self, category_inputs: Iterable[CategoryInput]) -> list[int]:
+        """
+        Resolves category inputs to category IDs.
+        If ID is provided, uses existing category.
+        If only name is provided, creates new category or finds existing by name.
+
+        Args:
+            category_inputs: List of CategoryInput objects
+
+        Returns:
+            List of category IDs
+        """
+        category_ids = []
+        for cat_input in category_inputs:
+            if cat_input.id is not None:
+                # Use existing category ID
+                category_ids.append(cat_input.id)
+            elif cat_input.name:
+                # Find or create category by name
+                existing = await self.category_repo.get_by_name(cat_input.name)
+                if existing:
+                    category_ids.append(existing.id)
+                else:
+                    new_cat = await self.category_repo.create(cat_input.name)
+                    category_ids.append(new_cat.id)
+        return category_ids
 
     async def create_vote(
         self,
         question: str,
         start_time: datetime,
         end_time: datetime,
-        category_ids: Optional[Iterable[int]] = None,
-        is_active: bool = False,
+        categories: Iterable[CategoryInput],
     ) -> Vote:
         """
         Creates a new voting with the given parameters.
+
+        The vote is automatically active based on start_time and end_time.
 
         Args:
             question: The question/description of the voting
             start_time: Start time of the voting
             end_time: End time of the voting
-            category_ids: Optional - List of category IDs for this voting
-            is_active: Whether the voting should be active immediately
+            categories: List of CategoryInput (id or name)
 
         Returns:
             The created Vote object
         """
+        category_ids = await self._resolve_categories(categories)
         return await self.vote_repo.create(
             question=question,
             start_time=start_time,
             end_time=end_time,
             category_ids=category_ids,
-            is_active=is_active,
+        )
+
+    async def update_vote(
+        self,
+        vote_id: int,
+        question: Optional[str] = None,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+        categories: Optional[Iterable[CategoryInput]] = None,
+    ) -> Vote:
+        """
+        Updates a voting with the given parameters.
+
+        Args:
+            vote_id: The ID of the voting to update
+            question: Optional - New question text
+            start_time: Optional - New start time
+            end_time: Optional - New end time
+            categories: Optional - New list of categories (replaces existing)
+
+        Returns:
+            The updated Vote object
+
+        Raises:
+            NoResultFound: If no voting with the given ID exists
+        """
+        category_ids = None
+        if categories is not None:
+            category_ids = await self._resolve_categories(categories)
+
+        return await self.vote_repo.update(
+            vote_id=vote_id,
+            question=question,
+            start_time=start_time,
+            end_time=end_time,
+            category_ids=category_ids,
         )
 
     async def get_vote_by_id(self, vote_id: int) -> Optional[Vote]:
@@ -65,26 +137,16 @@ class VotingService:
 
     async def get_active_vote(self) -> Optional[Vote]:
         """
-        Returns the currently active voting.
+        Returns the currently active voting based on start_time and end_time.
+
+        A vote is active if current time is between start_time and end_time.
 
         Returns:
             The active Vote object or None if none is active
         """
-        return await self.vote_repo.get_active()
+        return await self.vote_repo.get_active_by_time()
 
-    async def set_active_vote(self, vote_id: int) -> None:
-        """
-        Sets a specific voting as active and deactivates all others.
-
-        Args:
-            vote_id: The ID of the voting to activate
-
-        Raises:
-            NoResultFound: If no voting with the given ID exists
-        """
-        await self.vote_repo.set_active(vote_id)
-
-    async def list_votes(self, limit: int = 100, offset: int = 0) -> list[Vote]:
+    async def list_all_votes(self, limit: int = 100, offset: int = 0) -> list[Vote]:
         """
         Returns a list of all votings (paginated).
 
@@ -109,66 +171,4 @@ class VotingService:
         """
         return await self.vote_repo.delete(vote_id)
 
-    async def add_categories_to_vote(self, vote_id: int, category_ids: Iterable[int]) -> Vote:
-        """
-        Adds additional categories to a voting.
-
-        Args:
-            vote_id: The ID of the voting
-            category_ids: List of category IDs to add
-
-        Returns:
-            The updated Vote object
-
-        Raises:
-            NoResultFound: If no voting with the given ID exists
-        """
-        return await self.vote_repo.add_categories(vote_id, category_ids)
-
-    async def remove_categories_from_vote(self, vote_id: int, category_ids: Iterable[int]) -> Vote:
-        """
-        Removes categories from a voting.
-
-        Args:
-            vote_id: The ID of the voting
-            category_ids: List of category IDs to remove
-
-        Returns:
-            The updated Vote object
-
-        Raises:
-            NoResultFound: If no voting with the given ID exists
-        """
-        return await self.vote_repo.remove_categories(vote_id, category_ids)
-
-    async def is_vote_running(self, vote_id: int) -> bool:
-        """
-        Checks if a voting is currently running (based on start_time and end_time).
-
-        Args:
-            vote_id: The ID of the voting
-
-        Returns:
-            True if the voting is running, False otherwise
-        """
-        vote = await self.get_vote_by_id(vote_id)
-        if not vote:
-            return False
-        now = datetime.now(vote.start_time.tzinfo or None)
-        return vote.start_time <= now <= vote.end_time
-
-    async def get_vote_categories(self, vote_id: int) -> list[Category]:
-        """
-        Returns all categories of a voting.
-
-        Args:
-            vote_id: The ID of the voting
-
-        Returns:
-            List of Category objects or empty list if voting does not exist
-        """
-        vote = await self.get_vote_by_id(vote_id)
-        if not vote:
-            return []
-        return vote.categories
 

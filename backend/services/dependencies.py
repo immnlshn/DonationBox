@@ -59,13 +59,14 @@ def get_websocket_service() -> WebSocketService:
 
 
 def get_voting_service(
-    vote_repo: VoteRepository = Depends(get_vote_repository)
+    vote_repo: VoteRepository = Depends(get_vote_repository),
+    category_repo: CategoryRepository = Depends(get_category_repository)
 ) -> VotingService:
     """
     FastAPI Dependency for VotingService.
-    Automatically injects the repository.
+    Automatically injects the repositories.
     """
-    return VotingService(vote_repo=vote_repo)
+    return VotingService(vote_repo=vote_repo, category_repo=category_repo)
 
 
 def get_donation_service(
