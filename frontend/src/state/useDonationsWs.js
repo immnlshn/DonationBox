@@ -19,7 +19,7 @@ export function useDonationsWs() {
     return s;
   }, initialState);
 
-  const wsUrl = import.meta.meta.env.VITE_WS_URL;
+  const wsUrl = import.meta.env.VITE_WS_URL;
 
   const client = useMemo(() => {
     return createWsClient({

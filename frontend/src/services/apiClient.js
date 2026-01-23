@@ -7,7 +7,7 @@
  *
  * If there is no active vote, backend returns 404 (expected during setup).
  */
-const API_BASE_URL = import.meta.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 async function getJson(path) {
   const res = await fetch(`${API_BASE_URL}${path}`, {
