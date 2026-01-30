@@ -15,7 +15,7 @@ class Settings(BaseSettings):
   ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
 
   # Database
-  DATABASE_URL: str = "sqlite:///./database.db"
+  DATABASE_URL: str = "sqlite:///./backend/database.db"
 
   # CORS
   ALLOWED_ORIGINS: list[str] = []
