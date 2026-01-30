@@ -3,7 +3,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .services.gpio.GPIOService import gpio_service
+from .gpio import registry
+from .gpio.components import setup_components
 from .routes import api_router
 from .services.dependencies import get_websocket_service
 from .settings import settings
@@ -26,9 +27,15 @@ logger.info(f"LOG_LEVEL={settings.LOG_LEVEL}")
 @asynccontextmanager
 async def lifespan(_):
     # Startup
-    logger.info("Starting GPIO Service...")
-    gpio_service.initialize(enable_gpio=settings.ENABLE_GPIO, pin_factory=settings.PIN_FACTORY)
-    await gpio_service.start_background_task()
+    logger.info("Initializing GPIO...")
+    registry.initialize(enable_gpio=settings.ENABLE_GPIO, pin_factory=settings.PIN_FACTORY)
+
+    # Setup GPIO components from configuration
+    setup_components(registry)
+    logger.info(f"Registered {len(registry.list_components())} GPIO components")
+
+    logger.info("Starting GPIO registry...")
+    await registry.start()
 
     yield
 
@@ -39,9 +46,9 @@ async def lifespan(_):
     logger.info("Closing WebSocket connections...")
     await get_websocket_service().close_all_connections()
 
-    # Then stop GPIO service
-    logger.info("Stopping GPIO Service...")
-    await gpio_service.stop_background_task()
+    # Then stop GPIO registry
+    logger.info("Stopping GPIO registry...")
+    await registry.stop()
 
     logger.info("Application shutdown complete")
 
