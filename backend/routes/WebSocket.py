@@ -1,6 +1,8 @@
 import logging
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from ..services.websocket.WebSocketService import websocket_service
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
+
+from backend.services.dependencies import get_websocket_service
+from backend.services.websocket.WebSocketService import WebSocketService
 
 logger = logging.getLogger(__name__)
 
@@ -8,7 +10,10 @@ router = APIRouter()
 
 
 @router.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
+async def websocket_endpoint(
+    websocket: WebSocket,
+    ws_service: WebSocketService = Depends(get_websocket_service)
+):
     """
     WebSocket endpoint for real-time communication.
 
@@ -18,17 +23,17 @@ async def websocket_endpoint(websocket: WebSocket):
 
     Args:
         websocket: WebSocket connection instance
+        ws_service: Injected WebSocketService from container
 
     Returns:
         None
     """
     logger.info("Client connected")
 
-    await websocket_service.connect(websocket)
+    await ws_service.connect(websocket)
     try:
-        await websocket_service.listen_for_messages_json(websocket)
+        await ws_service.listen_for_messages_json(websocket)
     except WebSocketDisconnect:
-        websocket_service.disconnect(websocket)
+        ws_service.disconnect(websocket)
         logger.info("Client disconnected")
-
 

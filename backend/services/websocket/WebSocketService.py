@@ -154,10 +154,3 @@ class WebSocketService:
 
         logger.info("All WebSocket connections closed")
 
-
-# Global WebSocket service instance
-websocket_service = WebSocketService()
-
-
-
-
