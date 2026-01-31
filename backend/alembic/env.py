@@ -19,7 +19,7 @@ PROJECT_ROOT = os.path.dirname(BACKEND_DIR)                    # .../DonationBox
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from backend.settings import settings
+from backend.core.config import settings
 from backend.models import Base
 
 config = context.config

@@ -15,6 +15,7 @@ def setup_components(registry):
   Setup and register all GPIO components.
 
   Define your components here directly - no config file needed.
+  Dependencies are injected into handlers at runtime.
 
   Args:
       registry: ComponentRegistry instance
@@ -23,3 +24,6 @@ def setup_components(registry):
   vote_button_2 = VoteButton("button_2", 2, pin=27, bounce_time=0.1)
   registry.register(vote_button_1)
   registry.register(vote_button_2)
+
+
+

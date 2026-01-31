@@ -1,11 +1,15 @@
 import logging
-from typing import Optional
-from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
 from sqlalchemy.exc import NoResultFound
 
+from backend.schemas.voting import (
+    CategoryInput,
+    CreateVoteRequest,
+    UpdateVoteRequest,
+    VoteResponse,
+)
+from backend.schemas.donation import DonationTotalsResponse
 from backend.services.dependencies import get_voting_service, get_donation_service
 from backend.services.voting import VotingService
 from backend.services.donation import DonationService
@@ -14,52 +18,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-
-# Request Models
-class CategoryInput(BaseModel):
-    """Input for creating or referencing a category by name."""
-    name: str
-
-
-class CreateVoteRequest(BaseModel):
-    question: str
-    start_time: datetime
-    end_time: datetime
-    categories: list[CategoryInput]
-
-
-class UpdateVoteRequest(BaseModel):
-    question: Optional[str] = None
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
-    categories: Optional[list[CategoryInput]] = None
-
-
-# Response Models
-class CategoryResponse(BaseModel):
-    id: int
-    name: str
-
-    class Config:
-        from_attributes = True
-
-
-class VoteResponse(BaseModel):
-    id: int
-    question: str
-    start_time: datetime
-    end_time: datetime
-    categories: list[CategoryResponse]
-
-    class Config:
-        from_attributes = True
-
-
-class DonationTotalsResponse(BaseModel):
-    vote_id: int
-    total_amount_cents: int
-    total_donations: int
-    category_totals: dict[int, int]
 
 
 # Public endpoints

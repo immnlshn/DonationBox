@@ -1,6 +1,9 @@
 """
 FastAPI Dependencies for Services.
 
+All dependencies use the AppContainer from app.state.container.
+Services are created via Container factory methods.
+
 Usage in Routes:
     from fastapi import Depends
     from backend.services.dependencies import get_voting_service
@@ -10,77 +13,86 @@ Usage in Routes:
         return await voting_service.list_votes()
 """
 
-from fastapi import Depends
+from typing import AsyncGenerator
+
+from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.database.session import get_db
-from backend.repositories import VoteRepository
-from backend.repositories import DonationRepository
-from backend.repositories.category_repository import CategoryRepository
+from backend.core import AppContainer
 from backend.services.voting.VotingService import VotingService
 from backend.services.donation.DonationService import DonationService
-from backend.services.websocket.WebSocketService import websocket_service, WebSocketService
+from backend.services.websocket.WebSocketService import WebSocketService
 
 
-# Repository Dependencies
+# Container accessor
 
-def get_vote_repository(db: AsyncSession = Depends(get_db)) -> VoteRepository:
+def get_container(request: Request):
     """
-    FastAPI Dependency for VoteRepository.
-    Automatically injects the async DB session.
+    Get the application container from app.state.
+
+    Args:
+        request: FastAPI request object
+
+    Returns:
+        AppContainer instance
     """
-    return VoteRepository(db=db)
+    return request.app.state.container
 
 
-def get_donation_repository(db: AsyncSession = Depends(get_db)) -> DonationRepository:
-    """
-    FastAPI Dependency for DonationRepository.
-    Automatically injects the async DB session.
-    """
-    return DonationRepository(db=db)
+# Database session dependency
 
+async def get_db(container: AppContainer = Depends(get_container)) -> AsyncGenerator[AsyncSession, None]:
+    """
+    FastAPI Dependency for Async Database Sessions.
 
-def get_category_repository(db: AsyncSession = Depends(get_db)) -> CategoryRepository:
+    Creates a new async session from the container's sessionmaker.
+
+    Usage in routes:
+        @router.get("/")
+        async def my_route(db: AsyncSession = Depends(get_db)):
+            ...
     """
-    FastAPI Dependency for CategoryRepository.
-    Automatically injects the async DB session.
-    """
-    return CategoryRepository(db=db)
+    async with container.sessionmaker() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
 
 
 # Service Dependencies
+# Note: We don't expose Repository dependencies directly anymore.
+# Services are created via Container factory methods.
 
-def get_websocket_service() -> WebSocketService:
+def get_websocket_service(container: AppContainer = Depends(get_container)) -> WebSocketService:
     """
     FastAPI Dependency for WebSocketService.
-    Returns the global WebSocketService instance for connection pooling.
+    Returns the WebSocketService from the container.
     """
-    return websocket_service
+    return container.ws_hub
 
 
 def get_voting_service(
-    vote_repo: VoteRepository = Depends(get_vote_repository),
-    category_repo: CategoryRepository = Depends(get_category_repository)
+    container: AppContainer = Depends(get_container),
+    db: AsyncSession = Depends(get_db)
 ) -> VotingService:
     """
     FastAPI Dependency for VotingService.
-    Automatically injects the repositories.
+    Uses the container's factory method.
     """
-    return VotingService(vote_repo=vote_repo, category_repo=category_repo)
+    return container.create_voting_service(db)
 
 
 def get_donation_service(
-    donation_repo: DonationRepository = Depends(get_donation_repository),
-    voting_service: VotingService = Depends(get_voting_service),
-    ws_service: WebSocketService = Depends(get_websocket_service),
+    container: AppContainer = Depends(get_container),
+    db: AsyncSession = Depends(get_db)
 ) -> DonationService:
     """
     FastAPI Dependency for DonationService.
-    Automatically injects repository and required services.
+    Uses the container's factory method.
     """
-    return DonationService(
-        donation_repo=donation_repo,
-        voting_service=voting_service,
-        websocket_service=ws_service,
-    )
+    return container.create_donation_service(db)
 

@@ -1,14 +1,14 @@
 """
 Component Registry - manages GPIO components.
 """
+import asyncio
 import logging
-from typing import Dict, List
+from typing import Dict, List, Optional
 from gpiozero import Device
 from gpiozero.pins.mock import MockFactory
 
 from .base import GPIOComponent
 from .event import GPIOEvent
-from .bridge import EventBridge
 
 logger = logging.getLogger(__name__)
 
@@ -17,14 +17,13 @@ class ComponentRegistry:
     """
     Central registry for GPIO components.
 
-    Manages component lifecycle and event routing.
-    Components register themselves here and get started/stopped automatically.
+    Manages component lifecycle and dispatches events to Core event queue.
     """
 
     def __init__(self):
         self._components: Dict[str, GPIOComponent] = {}
-        self._bridge = EventBridge()
-        self._bridge.set_dispatcher(self._dispatch_event)
+        self._event_queue: Optional[asyncio.Queue] = None
+        self._loop: Optional[asyncio.AbstractEventLoop] = None
         self.enabled: bool = False
 
     def initialize(self, enable_gpio: bool, pin_factory: str = "mock") -> None:
@@ -82,8 +81,8 @@ class ComponentRegistry:
         if component.component_id in self._components:
             raise ValueError(f"Component {component.component_id} already registered")
 
-        # Set the event callback to push events into bridge
-        component.set_event_callback(self._bridge.queue_event)
+        # Set the event callback to push events into Core queue
+        component.set_event_callback(self._queue_event)
 
         self._components[component.component_id] = component
         logger.info(f"Component registered: {component.component_id}")
@@ -140,10 +139,49 @@ class ComponentRegistry:
         """
         return self._components[component_id]
 
-    async def start(self) -> None:
-        """Start all components and the event bridge."""
-        # Start event bridge
-        await self._bridge.start()
+    def get_event_queue(self):
+        """
+        Get the event queue.
+
+        Returns:
+            asyncio.Queue for GPIO events, or None if not started
+        """
+        return self._event_queue
+
+    def _queue_event(self, event: GPIOEvent) -> None:
+        """
+        Queue an event from a GPIO callback thread.
+
+        Thread-safe: Uses call_soon_threadsafe to schedule put_nowait
+        in the asyncio loop from a different thread.
+
+        Args:
+            event: GPIO event to queue
+        """
+        if self._loop is None or self._event_queue is None:
+            logger.warning(
+                f"Registry not started - dropping event: {event.component_id}/{event.event_type}"
+            )
+            return
+
+        try:
+            # Thread-safe: schedule put_nowait in the event loop
+            self._loop.call_soon_threadsafe(self._event_queue.put_nowait, event)
+            logger.debug(f"Event queued: {event.component_id}/{event.event_type}")
+        except Exception as e:
+            logger.error(f"Error queuing event: {e}", exc_info=True)
+
+    async def start(self, event_queue: asyncio.Queue) -> None:
+        """
+        Start all components and initialize event dispatching.
+
+        Args:
+            event_queue: Event queue from Core to dispatch events to
+        """
+        # Store queue and loop reference for thread-safe event dispatching
+        self._event_queue = event_queue
+        self._loop = asyncio.get_running_loop()
+        logger.info("Registry initialized with Core event queue")
 
         # Start all registered components
         for component_id, component in self._components.items():
@@ -157,7 +195,7 @@ class ComponentRegistry:
                 )
 
     async def stop(self) -> None:
-        """Stop all components and the event bridge."""
+        """Stop all components."""
         # Stop all components
         for component_id, component in self._components.items():
             try:
@@ -169,47 +207,9 @@ class ComponentRegistry:
                     exc_info=True
                 )
 
-        # Stop event bridge
-        await self._bridge.stop()
-
-    async def _dispatch_event(self, event: GPIOEvent) -> None:
-        """
-        Dispatch an event to the component's registered handlers.
-        Called by the event bridge in the asyncio loop.
-
-        Args:
-            event: GPIO event to dispatch
-        """
-        # Get component
-        component = self._components.get(event.component_id)
-        if component is None:
-            logger.warning(
-                f"Cannot dispatch event: Component {event.component_id} not found"
-            )
-            return
-
-        # Get handlers from component
-        handlers = component.get_handlers(event.event_type)
-
-        if not handlers:
-            logger.debug(
-                f"No handlers registered for {event.component_id}/{event.event_type}"
-            )
-            return
-
-        logger.debug(
-            f"Dispatching {event.component_id}/{event.event_type} to {len(handlers)} handler(s)"
-        )
-
-        # Call all handlers
-        for handler in handlers:
-            try:
-                await handler(event)
-            except Exception as e:
-                logger.error(
-                    f"Error in handler for {event.component_id}/{event.event_type}: {e}",
-                    exc_info=True
-                )
+        # Clear queue and loop reference
+        self._event_queue = None
+        self._loop = None
 
 
 # Global registry instance
