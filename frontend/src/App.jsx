@@ -7,37 +7,30 @@ import QRCodeInfo from "./components/QRCodeInfo.jsx";
 import CallToDonate from "./components/CallToDonate.jsx";
 import VotingResultsChart from "./components/VotingResultsChart.jsx";
 
-import clubLogo from "./assets/logo.png"; // bleibt für QRCodeInfo
+import clubLogo from "./assets/logo.png";
 import qrCodeSvg from "./assets/qrcode.svg";
-import ThankYouPopUp from "./components/ThankYouPopUp.jsx";
+
+import { useDonationsWs } from "./state/useDonationsWs";
+import { centsToEuroString } from "./state/donationsState";
 
 export default function App() {
-  const questionText = "Wer ist der GOAT im Fußball?";
-
-  const recentDonations = ["1 €", "2 €", "0,50 €"];
-  const totalAmount = "97,25 €";
-  const totalDonationsCount = 105;
-
+  // Static UI text (not backend-driven)
   const charityName = "Lobby für Mädchen- Mädchenhaus Köln e.V.";
   const qrInfoText =
     "Scannen Sie den QR-Code, um mehr über die Spendenorganisation zu erfahren.";
-
   const callToActionText = "Spenden Sie Ihr Bargeld und stimmen Sie ab!";
 
-  // NUR Prozent für die Balken
-  const results = [
-    { name: "Lionel Messi", percent: 70.5 },
-    { name: "Cristiano Ronaldo", percent: 29.5 },
-  ];
+  // Dynamic state
+  const s = useDonationsWs();
 
-  const popUpShown = false;
+  const totalAmount = centsToEuroString(s.totalAmountCents);
+  const totalDonationsCount = s.totalDonationsCount;
+  const recentDonations = s.recentDonationsCents.map(centsToEuroString);
 
   return (
     <div className="page">
-      {popUpShown && <ThankYouPopUp donationData={{amount: 100, category: "Messi"}}/>}
       <header className="header">
         <div className="brand">
-          {/* Logo oben entfernt, Text bleibt */}
           <div className="brand-text">
             <div className="brand-title">Spendenbasierte Abstimmung</div>
             <div className="brand-subtitle">Projekt von Studenten der UzK</div>
@@ -58,27 +51,25 @@ export default function App() {
 
       <main className="stack">
         <section className="card card-hero">
-          <DonationQuestion text={questionText} />
+          {/* Comes from GET /voting/active if available; otherwise a generic fallback */}
+          <DonationQuestion text={s.questionText} />
         </section>
 
         <section className="card">
-          {/* Damit der Satz "Wir haben bereits ..." nicht erscheint:
-              totalAmount/totalDonationsCount nicht an DonationSummary übergeben */}
           <DonationSummary recentDonations={recentDonations} />
         </section>
 
         <section className="card">
           <div className="donation-info">
             <QRCodeInfo
-               qrImageSrc={qrCodeSvg}
-               clubLogoSrc={clubLogo}
-               qrInfoText={qrInfoText}
+              qrImageSrc={qrCodeSvg}
+              clubLogoSrc={clubLogo}
+              qrInfoText={qrInfoText}
               alt="QR Code for more information"
-         >
+            >
               <DonationTarget charityName={charityName} />
-        </QRCodeInfo>
-      </div>
-
+            </QRCodeInfo>
+          </div>
         </section>
 
         <section className="card card-cta">
@@ -88,9 +79,10 @@ export default function App() {
         <section className="card">
           <div className="section-head">
             <h2 className="section-title">Aktueller Stand</h2>
-            {/* "Ergebnis der Abstimmung (in Prozent)" entfernt */}
           </div>
-          <VotingResultsChart results={results} />
+
+          {/* Always shows bars (0%) because results are never empty */}
+          <VotingResultsChart results={s.results} />
         </section>
       </main>
     </div>
