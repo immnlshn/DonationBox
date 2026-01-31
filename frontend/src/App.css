@@ -1,21 +1,20 @@
 :root{
-  --bg: #ffffff;
-  --text: #0f172a;
-  --muted: #5b6b86;
+  --bg:#ffffff;
+  --text:#0f172a;
+  --muted:#5b6b86;
+  --line:rgba(15,23,42,0.10);
 
-  --line: rgba(15, 23, 42, 0.10);
+  /* CTA */
+  --cta:#ff3d5d;
+  --ctaText:#ffffff;
 
-  /* CTA (auffälligste Farbe) */
-  --cta: #ff6a3d;
-  --ctaText: #ffffff;
+  /* Balkenfarben */
+  --bar-a:#f2a900;
+  --bar-b:#1e88c8;
+  --bar-track:rgba(15,23,42,0.08);
 
-  /* Balkenfarben bleiben */
-  --bar-a: #f2a900; /* gelb */
-  --bar-b: #1e88c8; /* blau */
-  --bar-track: rgba(15, 23, 42, 0.08);
-
-  /* Layout: hochkant / nicht zu breit */
-  --maxw: 760px;
+  /* Layout */
+  --maxw:750px;
 }
 
 *,
@@ -25,16 +24,16 @@
 html, body{ height:100%; }
 
 body{
-  margin:0;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  color: var(--text);
-  background: var(--bg);
+  color:var(--text);
+  background:var(--bg);
 }
 
 /* ---------- overall width ---------- */
 .page{
-  width: min(var(--maxw), 94vw);
-  margin: 18px auto 28px;
+  width:min(var(--maxw), 92vw);
+  margin: 60px auto 30px;
+  overflow-y: hidden;
 }
 
 /* ---------- header (Text links, Stats rechts) ---------- */
@@ -44,351 +43,315 @@ body{
   justify-content:space-between;
   gap:14px;
 
-  padding: 8px 2px 14px;
-  border-bottom: 1px solid var(--line);
+  padding: 8px 2px 22px;          /* luftiger unten */
+  border-bottom:1px solid var(--line);
 }
 
-/* Brand: nur Text (kein Logo oben) */
+/* Brand: nur Text */
 .brand{
   display:flex;
   align-items:flex-end;
   gap:12px;
-  min-width: 0;
+  min-width:0;
 }
 
-.brand-logo{ display:none; } /* falls irgendwo noch gerendert wird */
+.brand-logo{ display:none; }
 
 .brand-text{ min-width:0; }
 
 .brand-title{
-  font-weight: 1000;
-  letter-spacing: -0.02em;
-  font-size: 16px;
-  line-height: 1.1;
+  font-weight:1000;
+  font-size:22px;
 }
 
 .brand-subtitle{
-  margin-top: 2px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--muted);
+  margin-top:8px;
+  font-size:18px;
+  font-weight:700;
+  color:var(--muted);
 }
 
-/* Stats rechts: ohne Boxen */
 .stats{
   display:flex;
   gap:14px;
 }
 
 .stat{
-  padding: 0;
-  background: transparent;
-  border: none;
-  border-radius: 0;
+  padding:0;
+  background:transparent;
+  border:none;
   text-align:right;
-  min-width: 86px;
+  min-width:86px;
 }
 
 .stat-label{
-  font-size: 11px;
-  font-weight: 900;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.10em;
+  font-size:18px;
+  font-weight:800;
+  color:var(--muted);
+  text-transform:uppercase;
 }
 
 .stat-value{
-  margin-top: 2px;
-  font-size: 16px;
-  font-weight: 1000;
+  margin-top:8px;
+  font-size:20px;
+  font-weight:900;
 }
 
-/* ---------- stack ---------- */
+/* ---------- layout stack ---------- */
 .stack{
-  margin-top: 14px;
+  margin-top:16px;
   display:flex;
   flex-direction:column;
-  gap: 16px;
+  gap:40px; /* deine letzte Codierung sauber übernommen */
 }
 
-/* ---------- cards: “no box” look ---------- */
 .card{
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  border-radius: 0;
-  padding: 0;
+  background:transparent;
+  border:none;
+  box-shadow:none;
+  border-radius:0;
+  padding:0;
 }
 
-/* Frage zentrieren */
-.donation-question {
-  text-align: center;
-  margin: 12px 0;
+/* ---------- question ---------- */
+.donation-question{
+  text-align:center;
+  margin: 22px 0;
 }
 
-.donation-question .title-text {
-  text-align: center;
+.donation-question .title-text{
+  text-align:center;
+  font-size: clamp(38px, 4vw, 50px);
 }
-
 
 .question-kicker{
-  margin: 0 0 8px;
-  font-size: 20px;
-  font-weight: 900;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
+  margin:0 0 8px;
+  font-size:12px;           /* war 2px -> unbrauchbar */
+  font-weight:900;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:0.12em;
 }
 
 .title-text{
-  margin: 0;
-  font-size: clamp(26px, 3vw, 38px);
-  font-weight: 1000;
-  letter-spacing: -0.03em;
-  line-height: 1.12;
+  margin:0;
+  font-size:clamp(32px, 3vw, 44px);
+  font-weight:1000;
+  letter-spacing:-0.03em;
 }
 
 /* ---------- summary ---------- */
 .donation-summary{
-  padding-top: 10px;
-  border-top: 1px solid var(--line);
+  padding-top:22px;
+  padding-bottom: 0px;
+  border-top:1px solid var(--line);
 }
 
-/* Aktuelle Spenden + Pills: immer in einer Linie */
 .recent-donations{
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: nowrap;           /* KEIN Umbruch */
-  margin-bottom: 8px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  margin-bottom:0;
 }
+
+.recent-donations .subtitle{
+  font-size: 18px;
+}
+
 
 .subtitle{
-  margin: 0;
-  font-size: 12px;
-  font-weight: 900;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.10em;
-  white-space: nowrap;
+  margin:0;
+  font-size:16px;
+  font-weight:900;
+  color:var(--muted);
+  text-transform:uppercase;
+  white-space:nowrap;
 }
 
-/* Liste bleibt in einer Linie + scrollt wenn nötig */
 .donation-list{
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  margin:0;
+  padding:0;
+  list-style:none;
 
-  display: flex;
-  flex-wrap: nowrap;           /* KEIN Umbruch */
-  gap: 8px;
+  display:flex;
+  flex-wrap:nowrap;
+  gap:8px;
 
-  overflow-x: auto;            /* falls zu lang: horizontal scroll */
-  overflow-y: hidden;
-  white-space: nowrap;
-  -webkit-overflow-scrolling: touch;
+  overflow-x:auto;
+  overflow-y:hidden;
+  white-space:nowrap;
+  -webkit-overflow-scrolling:touch;
 }
 
-/* optional: Scrollbar dezenter */
-.donation-list::-webkit-scrollbar{
-  height: 6px;
-}
+.donation-list::-webkit-scrollbar{ height:6px; }
 .donation-list::-webkit-scrollbar-thumb{
-  background: rgba(15, 23, 42, 0.18);
-  border-radius: 999px;
+  background:rgba(15,23,42,0.18);
+  border-radius:999px;
 }
 
-/* Pills/Kreise */
+/* Pills */
 .donation-list li{
-  flex: 0 0 auto;
-  font-size: 13px;
-  font-weight: 1000;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.06);
-  border: 1px solid rgba(15, 23, 42, 0.10);
-  color: var(--text);
+  flex:0 0 auto;
+  font-size:16px;
+  font-weight:1000;
+  padding:6px 10px;
+  border-radius:999px;
+  background:rgba(15,23,42,0.06);
+  border:1px solid rgba(15,23,42,0.10);
+  color:var(--text);
 }
-
-/* Falls DonationSummary noch total-amount enthält, neutral halten */
-.total-amount{
-  margin: 6px 0 0;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--text);
-}
-.total-amount strong{ font-weight: 1000; }
 
 /* ---------- donation target + qr ---------- */
 .donation-info{
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
+  padding-top:20px;
+  border-top:1px solid var(--line);
   display:flex;
   flex-direction:column;
-  gap: 10px;
+  gap:10px;
 }
 
-.donation-target{
-  padding: 0;
-}
+
+
+.donation-target{ padding:0; }
 
 .target-text{
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.55;
+  margin:0;
+  font-size:18px;
+  line-height:1.55;
 }
 
 .donation-target strong{
-  font-weight: 1000;
-  background: rgba(22,163,74,0.12);
-  border: 1px solid rgba(22,163,74,0.22);
-  padding: 2px 10px;
-  border-radius: 10px;
+  display:block;
+  margin-top:12px;
+
+  font-size:20px;
+  font-weight:1000;
+  color:var(--text);
+  line-height:1.25;
 }
 
-/* QR area: kompakt, keine Boxen um Bilder */
+/* QR Layout: links Bilder, rechts Textblock */
 .qr-code-info{
-  padding: 0;
   display:grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns:auto 1fr;
   align-items:center;
-  gap: 12px;
+  gap:12px;
 }
 
 .qr-logo-row{
   display:flex;
   align-items:center;
-  gap: 10px;
+  gap:6px;
 }
 
 .qr-code-image{
-  width: 120px;
-  height: 120px;
-  object-fit: contain;
+  width:110px;
+  height:110px;
+  object-fit:contain;
   display:block;
 
-  border: none;
-  background: transparent;
-  padding: 0;
-  border-radius: 0;
-  box-shadow: none;
+  border:none;
+  background:transparent;
+  padding:0;
+  border-radius:0;
+  box-shadow:none;
 }
 
 .club-logo{
-  width: 200px;
-  height: 120px;
-  object-fit: contain;
+  width:180px;
+  height:130px;
+  object-fit:contain;
   display:block;
 
-  border: none;
-  background: transparent;
-  padding: 0;
-  border-radius: 0;
-  box-shadow: none;
+  border:none;
+  background:transparent;
+  padding:0;
+  border-radius:0;
+  box-shadow:none;
+}
+
+/* rechter Bereich: Target oben, Scan-Text darunter */
+.qr-right{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
 }
 
 .qr-info-text{
-  margin: 0;
-  font-size: 15px;
-  font-weight: 750;
-  color: var(--muted);
-  line-height: 1.5;
+  margin:0;
+  font-size:18px;
+  font-weight:750;
+  color:var(--muted);
+  line-height:1.5;
 }
 
-/* ===== FIX CTA (egal wie CallToDonate intern gebaut ist) ===== */
+/* ---------- call to action (CTA) ---------- */
+.card-cta{
+  margin-top:6px;
+  margin-bottom:6px;
+}
+
 .card-cta .call-to-donate{
-  background: var(--cta) !important;
-  color: var(--ctaText) !important;
+  background:var(--cta);
+  color:var(--ctaText);
 
-  border: 1px solid rgba(255, 106, 61, 0.35) !important;
-  border-radius: 16px !important;          /* Box, nicht pill */
-  padding: 18px 16px !important;
+  border:1px solid rgba(255,106,61,0.35);
+  border-radius:16px;
+  padding:18px 16px;
 
-  box-shadow: 0 18px 45px rgba(255, 106, 61, 0.26) !important;
+  box-shadow:0 18px 45px rgba(255,106,61,0.26);
 
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
 /* Text im CTA */
-.card-cta .call-to-donate p,
-.card-cta .call-to-donate{
-  margin: 0 !important;
-  font-size: 22px !important;
-  font-weight: 1000 !important;
-  letter-spacing: -0.01em !important;
+.card-cta .call-to-donate,
+.card-cta .call-to-donate p{
+  margin:0;
+  font-size:31px;
+  font-weight:900;
 }
-
-/* Falls du DOCH ein inneres Wrapper-Element hast */
-.card-cta .call-to-donate-inner{
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-}
-
-/* Optional: falls es rechts einen kleinen Button/Badge gibt */
-.card-cta .cta-pill{
-  background: rgba(255,255,255,0.18) !important;
-  border: 1px solid rgba(255,255,255,0.28) !important;
-  color: #fff !important;
-  padding: 10px 12px !important;
-  border-radius: 12px !important;
-  font-weight: 1000 !important;
-}
-
 
 /* ---------- Section head ---------- */
 .section-head{
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
-  margin-bottom: 10px;
-  text-align: center;
+  padding-top:14px;
+  border-top:1px solid var(--line);
+  margin-bottom:16px; /* mehr Abstand nach unten */
+  text-align:center;
 
   display:flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.section-title{
-  margin: 0;
-  font-size: 16px;
-  font-weight: 1000;
-}
-
-.section-subtitle{
-  margin: 0;
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--muted);
+  align-items:baseline;
+  justify-content:center;
+  gap:10px;
 }
 
 /* ---------- results ---------- */
 .voting-results-chart{
   display:flex;
-  justify-content: space-evenly;
-  align-items: flex-end;
-  gap: 18px;
-  padding: 6px 0 0;
+  justify-content:space-evenly;
+  align-items:flex-end;
+  gap:20px;
+  padding:6px 0 0;
 }
 
 .candidate-result-column{
-  width: 200px;
+  width:200px;
   display:flex;
-  flex-direction: column;
+  flex-direction:column;
   align-items:center;
-  gap: 10px;
+  gap:10px;
 }
 
 .bar{
-  width: 150px;
-  height: 360px;
-  background: var(--bar-track);
-  border-radius: 18px;
+  width:170px;
+  height:550px;
+  background:var(--bar-track);
+  border-radius:18px;
   overflow:hidden;
-  border: 1px solid rgba(15,23,42,0.10);
+  border:1px solid rgba(15,23,42,0.10);
   display:flex;
   align-items:flex-end;
 }
@@ -398,28 +361,26 @@ body{
   display:flex;
   align-items:flex-end;
   justify-content:center;
-  padding-bottom: 10px;
+  padding-bottom:10px;
   transition: height 320ms cubic-bezier(0.2, 0.9, 0.2, 1);
 }
 
-.candidate-result-column:nth-child(1) .fill{ background: var(--bar-a); }
-.candidate-result-column:nth-child(2) .fill{ background: var(--bar-b); }
+.candidate-result-column:nth-child(1) .fill{ background:var(--bar-a); }
+.candidate-result-column:nth-child(2) .fill{ background:var(--bar-b); }
 
 .bar-label{
-  font-size: 15px;
-  font-weight: 1000;
+  font-size:22px;
+  font-weight:1000;
   color:#fff;
-  background: rgba(0,0,0,0.20);
-  border: 1px solid rgba(255,255,255,0.18);
-  padding: 8px 10px;
-  border-radius: 12px;
+  background:rgba(0,0,0,0.20);
+  border:1px solid rgba(255,255,255,0.18);
+  padding:8px 10px;
+  border-radius:12px;
 }
 
 .candidate-name{
-  font-size: 18px;
-  font-weight: 1000;
-  text-align:center;
-  line-height: 1.2;
+  font-size:22px;
+  font-weight:1000;
 }
 
 /* ---------- responsive ---------- */
@@ -427,116 +388,25 @@ body{
   .stats{ display:none; }
 
   .qr-code-info{
-    grid-template-columns: 1fr;
-    justify-items: center;
-    text-align: center;
-    gap: 10px;
+    grid-template-columns:1fr;
+    justify-items:center;
+    text-align:center;
+    gap:10px;
   }
 
-  .qr-logo-row{
-    justify-content:center;
-  }
+  .qr-logo-row{ justify-content:center; }
 
-  .club-logo{ width: 180px; height: 110px; }
-  .qr-code-image{ width: 110px; height: 110px; }
+  .club-logo{ width:170px; height:110px; }
+  .qr-code-image{ width:110px; height:110px; }
 
-  .candidate-result-column{ width: 160px; }
-  .bar{ width: 120px; height: 280px; }
+  .candidate-result-column{ width:160px; }
+  .bar{ width:150px; height:300px; }
 
-  .call-to-donate p{ font-size: 22px; }
+  .call-to-donate p{ font-size:28px; }
 }
 
 @media (prefers-reduced-motion: reduce){
   .fill{ transition:none !important; }
-}
-
-
-/* Charity-Name: keine Box/Farbe, dafür größer + eigene Zeile */
-.donation-target strong{
-  background: transparent !important;
-  border: none !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-
-  display: block;              /* neue Zeile */
-  margin-top: 6px;
-
-  font-size: 18px;             /* größer */
-  font-weight: 1000;
-  color: var(--text);
-  line-height: 1.25;
-}
-
-/* QR Layout: links Bilder, rechts Textblock */
-.qr-code-info{
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 12px;
-}
-
-/* rechter Bereich: Target oben, Scan-Text darunter */
-.qr-right{
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* DonationTarget im QR-Bereich: keine extra Linien/Abstände */
-.qr-right .donation-target{
-  padding: 0;
-  border-top: none;
-}
-
-.qr-right .target-text{
-  margin: 0;
-}
-
-/* Scan-Text bleibt wie gehabt */
-.qr-info-text{
-  margin: 0;
-}
-
-/* Aktuelle Spenden komplett zentrieren */
-.donation-summary{
-  text-align: center;
-}
-
-.recent-donations{
-  display: flex;
-  justify-content: center;   /* horizontal zentriert */
-  align-items: center;
-  gap: 10px;
-}
-
-.subtitle{
-  margin: 0;
-  white-space: nowrap;
-}
-
-.donation-list{
-  justify-content: center;   /* Kreise zentrieren */
-}
-
-/* Nur "Aktueller Stand" zentrieren – funktioniert auch bei flex */
-.section-head{
-  justify-content: center !important;  /* falls display:flex */
-}
-
-.section-head .section-title{
-  text-align: center !important;
-  width: 100%;
-}
-
-
-/* Abstand unter "Aktuelle Spenden" kleiner */
-.recent-donations{
-  margin-bottom: 0px !important;   /* vorher z.B. 8px */
-}
-
-/* falls die Linie durch padding-bottom entsteht */
-.donation-summary{
-  padding-bottom: 0px !important; /* vorher ggf. 18px */
 }
 
 .popup {
