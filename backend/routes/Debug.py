@@ -1,7 +1,8 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
 
+from fastapi import APIRouter, Depends, HTTPException
+
+from backend.schemas.donation import DonationRequest, DonationResponse
 from backend.services.dependencies import get_donation_service
 from backend.services.donation.DonationService import DonationService
 
@@ -9,21 +10,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-
-class DonationRequest(BaseModel):
-    """Request model for creating a donation."""
-    amount_cents: int
-    category_id: int
-
-
-class DonationResponse(BaseModel):
-    """Response model for created donation."""
-    success: bool
-    donation_id: int
-    vote_id: int
-    category_id: int
-    amount_cents: int
-    message: str
 
 
 @router.post('/donation', response_model=DonationResponse)
