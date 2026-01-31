@@ -6,7 +6,11 @@ import asyncio
 import logging
 from backend.gpio.event import GPIOEvent
 from backend.core.container import AppContainer
+from backend.gpio import registry
+from backend.core.decorators import call_handler_with_injection
+
 logger = logging.getLogger(__name__)
+
 class EventHandler:
     """
     Event handler that processes events from the Core event queue.
@@ -36,6 +40,7 @@ class EventHandler:
                 await self._task
             except asyncio.CancelledError:
                 logger.info("Event handler stopped")
+                raise
     async def _run(self):
         """Main event processing loop."""
         try:
@@ -49,13 +54,14 @@ class EventHandler:
                     logger.debug(f"Processing event: {event.component_id}/{event.event_type}")
                     # Process event by dispatching to component handlers
                     await self._process_event(event)
-                    # Mark task done
-                    self.event_queue.task_done()
                 except asyncio.TimeoutError:
                     # No event - just continue to check for cancellation
                     continue
                 except Exception as e:
                     logger.error(f"Error processing event: {e}", exc_info=True)
+                finally:
+                    # Mark task done
+                    self.event_queue.task_done()
         except asyncio.CancelledError:
             logger.info("Event handler cancelled")
             raise
@@ -70,8 +76,6 @@ class EventHandler:
         Args:
             event: Event to process
         """
-        from backend.gpio import registry
-        from backend.core.decorators import call_handler_with_injection
         # Get component
         component = registry.get_component(event.component_id)
         if component is None:

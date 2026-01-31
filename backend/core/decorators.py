@@ -4,7 +4,6 @@ Event-driven programming decorators for GPIO components.
 Provides decorators to register event handlers with automatic dependency injection.
 """
 
-import functools
 import inspect
 from typing import Callable, Optional, Any
 from backend.gpio.event import GPIOEvent
