@@ -49,9 +49,7 @@ class GPIOButton(GPIOComponent):
         self.pull_up = pull_up
         self._button: Optional[Button] = None
 
-        # Register internal handler that calls the abstract method
-        self.on('button_pressed', self.handle_press)
-        self.on('button_released', self.handle_release)
+        # Note: Event handlers are registered via @event decorator in subclasses
 
     def start(self) -> None:
         """Setup the button and register callbacks."""
@@ -121,31 +119,3 @@ class GPIOButton(GPIOComponent):
             event_type="button_released",
             data={"pin": self.pin}
         )
-
-    @abstractmethod
-    async def handle_press(self, event: GPIOEvent) -> None:
-        """
-        Handle button press event.
-        Implement your business logic here.
-
-        This runs in the FastAPI asyncio loop, so you can safely:
-        - Use async/await
-        - Access database
-        - Send WebSocket messages
-
-        Args:
-            event: GPIO event with button data
-        """
-        pass
-
-    @abstractmethod
-    async def handle_release(self, event: GPIOEvent) -> None:
-        """
-        Handle button release event.
-        Optional - override if you need release logic.
-
-        Args:
-            event: GPIO event with button data
-        """
-        # Default: do nothing on release
-        pass

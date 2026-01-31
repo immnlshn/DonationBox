@@ -2,6 +2,8 @@ import logging
 
 from backend.gpio import GPIOEvent
 from backend.gpio.components.gpio_button import GPIOButton
+from backend.core.container import AppContainer
+from backend.core.decorators import event
 
 logger = logging.getLogger(__name__)
 
@@ -10,7 +12,8 @@ class VoteButton(GPIOButton):
     """
     GPIO button for voting functionality.
 
-    When pressed, it emits an event to the Core event queue.
+    Business logic is implemented using @event decorated methods.
+    Dependencies are automatically injected based on method signature.
     """
 
     def __init__(
@@ -18,6 +21,7 @@ class VoteButton(GPIOButton):
         component_id: str,
         representing_option: int,
         pin: int,
+        amount_cents: int = 10,
         bounce_time: float = 0.2,
         pull_up: bool = True,
     ):
@@ -28,6 +32,7 @@ class VoteButton(GPIOButton):
             component_id: Unique identifier for this button
             representing_option: Option number this button represents
             pin: GPIO pin number (BCM numbering)
+            amount_cents: Amount in cents per button press
             bounce_time: Debounce time in seconds
             pull_up: Use pull-up resistor (True) or pull-down (False)
         """
@@ -38,17 +43,24 @@ class VoteButton(GPIOButton):
             pull_up=pull_up,
         )
         self._representing_option = representing_option
+        self._amount_cents = amount_cents
 
-    async def handle_release(self, event: GPIOEvent) -> None:
-        """Not needed for voting buttons."""
+    @event("button_released")
+    async def handle_release(self, gpio_event: GPIOEvent) -> None:
+        """Handle button release - not needed for voting buttons."""
         pass
 
-    async def handle_press(self, event: GPIOEvent) -> None:
+    @event("button_pressed")
+    async def handle_press(self, gpio_event: GPIOEvent, container: AppContainer) -> None:
         """
-        Handle button press - event is automatically queued by base class.
+        Handle button press - creates donation for active vote.
 
-        This runs in the GPIO callback thread and should do minimal work.
-        The actual business logic happens in the Core event handler.
+        This runs in AsyncIO event loop scope (NOT in GPIO thread).
+        Called by EventHandler after event is read from queue.
+        Container is injected via dependency injection.
+
+        Args:
+            gpio_event: GPIO event from the queue
+            container: Application container (injected by EventHandler)
         """
         logger.info(f"Vote button {self._representing_option} pressed")
-
