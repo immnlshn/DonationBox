@@ -17,6 +17,7 @@ from backend.repositories import VoteRepository, CategoryRepository
 from backend.services.voting.VotingService import VotingService
 from backend.repositories import DonationRepository
 from backend.services.donation.DonationService import DonationService
+from backend.core.state_store import StateStore
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +37,7 @@ class AppContainer:
     self.engine = None
     self.sessionmaker = None
     self.ws_hub = None
+    self.state_store = None
 
   def setup(self):
     """
@@ -50,6 +52,9 @@ class AppContainer:
 
     # Setup WebSocket hub
     self._setup_websocket()
+
+    # Setup state store
+    self._setup_state_store()
 
     logger.info("AppContainer setup complete")
 
@@ -66,6 +71,12 @@ class AppContainer:
 
     self.ws_hub = WebSocketService()
     logger.info("WebSocket hub created")
+
+  def _setup_state_store(self):
+    """Setup in-memory state store."""
+
+    self.state_store = StateStore()
+    logger.info("State store created")
 
   async def dispose(self):
     """

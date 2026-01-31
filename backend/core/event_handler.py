@@ -54,14 +54,16 @@ class EventHandler:
                     logger.debug(f"Processing event: {event.component_id}/{event.event_type}")
                     # Process event by dispatching to component handlers
                     await self._process_event(event)
+                    # Mark task done
+                    self.event_queue.task_done()
                 except asyncio.TimeoutError:
                     # No event - just continue to check for cancellation
                     continue
                 except Exception as e:
                     logger.error(f"Error processing event: {e}", exc_info=True)
-                finally:
                     # Mark task done
                     self.event_queue.task_done()
+
         except asyncio.CancelledError:
             logger.info("Event handler cancelled")
             raise

@@ -15,10 +15,12 @@ from .config import settings
 from .database import setup_database
 from .logging import setup_logging
 from .container import AppContainer
+from .state_store import StateStore
 
 __all__ = [
     "settings",
     "setup_database",
     "setup_logging",
     "AppContainer",
+    "StateStore"
 ]

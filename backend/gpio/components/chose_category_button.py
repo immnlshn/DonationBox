@@ -17,13 +17,13 @@ class ChooseCategoryButton(GPIOButton):
     """
 
     def __init__(
-        self,
-        component_id: str,
-        representing_option: int,
-        pin: int,
-        amount_cents: int = 10,
-        bounce_time: float = 0.2,
-        pull_up: bool = True,
+            self,
+            component_id: str,
+            representing_option: int,
+            pin: int,
+            amount_cents: int = 10,
+            bounce_time: float = 0.2,
+            pull_up: bool = True,
     ):
         """
         Initialize VoteButton.
@@ -58,4 +58,6 @@ class ChooseCategoryButton(GPIOButton):
             gpio_event: GPIO event from the queue
             container: Application container (injected by EventHandler)
         """
-        logger.info(f"Vote button {self._representing_option} pressed on pin {self.pin} at time {gpio_event.timestamp}")
+        logger.debug(
+            f"ChooseCategoryButton {self._representing_option} pressed on pin {self.pin} at time {gpio_event.timestamp}")
+        container.state_store.set("chosen_category", self._representing_option)
