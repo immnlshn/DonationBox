@@ -8,7 +8,7 @@ from backend.core.decorators import event
 logger = logging.getLogger(__name__)
 
 
-class VoteButton(GPIOButton):
+class ChooseCategoryButton(GPIOButton):
     """
     GPIO button for voting functionality.
 
@@ -45,11 +45,6 @@ class VoteButton(GPIOButton):
         self._representing_option = representing_option
         self._amount_cents = amount_cents
 
-    @event("button_released")
-    async def handle_release(self, gpio_event: GPIOEvent) -> None:
-        """Handle button release - not needed for voting buttons."""
-        pass
-
     @event("button_pressed")
     async def handle_press(self, gpio_event: GPIOEvent, container: AppContainer) -> None:
         """
@@ -63,4 +58,4 @@ class VoteButton(GPIOButton):
             gpio_event: GPIO event from the queue
             container: Application container (injected by EventHandler)
         """
-        logger.info(f"Vote button {self._representing_option} pressed")
+        logger.info(f"Vote button {self._representing_option} pressed on pin {self.pin} at time {gpio_event.timestamp}")
