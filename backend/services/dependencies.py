@@ -13,7 +13,7 @@ Usage in Routes:
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.database.session import get_db
+from backend.core.database import get_db
 from backend.repositories import VoteRepository
 from backend.repositories import DonationRepository
 from backend.repositories.category_repository import CategoryRepository

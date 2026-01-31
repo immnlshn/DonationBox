@@ -6,4 +6,4 @@ venv/
 .env
 *$py.class
 *.py[cod]
-
+database.db
