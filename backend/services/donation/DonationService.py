@@ -85,12 +85,24 @@ class DonationService:
             The created Donation object or None if no voting is active
 
         Raises:
-            IntegrityError: If category_id does not exist or does not belong to the voting
+            ValueError: If category_id does not belong to the active voting
         """
         active_vote = await self.voting_service.get_active_vote()
         if not active_vote:
             logger.warning("Cannot create donation: No active vote exists")
             return None
+
+        # Validate that category belongs to this vote
+        valid_category_ids = {cat.id for cat in active_vote.categories}
+        if category_id not in valid_category_ids:
+            logger.error(
+                f"Category validation failed: category_id={category_id} not in vote "
+                f"categories {valid_category_ids} for vote_id={active_vote.id}"
+            )
+            raise ValueError(
+                f"Category {category_id} does not belong to the active voting. "
+                f"Valid categories: {sorted(valid_category_ids)}"
+            )
 
         logger.info(
             f"Creating donation: vote_id={active_vote.id}, "
@@ -143,8 +155,9 @@ class DonationService:
         """
         Process a pending donation from state store.
 
-        Checks if both category and money are present in state and not expired (< ttl_seconds old).
-        If both conditions are met, creates donation and clears state.
+        Checks if both category position and money are present in state and not expired (< ttl_seconds old).
+        Resolves the position to a category_id from the active vote.
+        If all conditions are met, creates donation and clears state.
 
         Args:
             state_store: State store instance to read from
@@ -155,20 +168,45 @@ class DonationService:
         """
         current_time = time.time()
 
-        # Get category from state
+        # Get category position from state
         category_data = state_store.get("chosen_category", None)
         if not category_data or not isinstance(category_data, dict):
             logger.debug("No category selected or invalid format")
             return None
 
-        category_id = category_data.get("category_id")
+        position = category_data.get("position")
         category_timestamp = category_data.get("timestamp", 0)
+
+        if position is None:
+            logger.debug("No position in category data")
+            return None
 
         # Check category TTL
         if current_time - category_timestamp > ttl_seconds:
             logger.info(f"Category expired (age: {current_time - category_timestamp:.1f}s > {ttl_seconds}s)")
             state_store.delete("chosen_category")
             return None
+
+        # Resolve position to category_id from active vote
+        active_vote = await self.voting_service.get_active_vote()
+        if not active_vote:
+            logger.warning("No active vote - cannot resolve category position")
+            state_store.delete("chosen_category")
+            return None
+
+        if not (0 <= position < len(active_vote.categories)):
+            logger.error(
+                f"Invalid category position {position}: active vote has {len(active_vote.categories)} categories"
+            )
+            state_store.delete("chosen_category")
+            return None
+
+        category = active_vote.categories[position]
+        category_id = category.id
+
+        logger.info(
+            f"Resolved position {position} -> category_id={category_id} ('{category.name}')"
+        )
 
         # Get money from state
         money_data = state_store.get("total_donation_cents", None)
@@ -192,7 +230,8 @@ class DonationService:
 
         # Both present and valid - create donation
         logger.info(
-            f"Processing donation: category_id={category_id}, amount_cents={amount_cents} "
+            f"Processing donation: position={position}, category_id={category_id} ('{category.name}'), "
+            f"amount_cents={amount_cents} "
             f"(category_age={current_time - category_timestamp:.1f}s, money_age={current_time - money_timestamp:.1f}s)"
         )
 

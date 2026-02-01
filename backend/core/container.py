@@ -134,7 +134,12 @@ class AppContainer:
 
     vote_repo = VoteRepository(db=db)
     category_repo = CategoryRepository(db=db)
-    return VotingService(vote_repo=vote_repo, category_repo=category_repo)
+    donation_repo = DonationRepository(db=db)
+    return VotingService(
+        vote_repo=vote_repo,
+        category_repo=category_repo,
+        donation_repo=donation_repo
+    )
 
   def create_donation_service(self, db: AsyncSession):
     """

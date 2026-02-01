@@ -4,6 +4,9 @@ Application configuration and settings.
 Uses pydantic-settings for environment variable management.
 """
 
+import json
+from typing import Union
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -27,11 +30,33 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///./backend/database.db"
 
     # CORS
-    ALLOWED_ORIGINS: list[str] = []
+    ALLOWED_ORIGINS: Union[list[str], str] = "*"
 
     # GPIO
     ENABLE_GPIO: bool = False
     PIN_FACTORY: str = "mock"
+
+    @field_validator("ALLOWED_ORIGINS", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v):
+        """Parse ALLOWED_ORIGINS from string or list."""
+        if isinstance(v, str):
+            # If it's "*", allow all origins
+            if v == "*":
+                return ["*"]
+            # Try to parse as JSON
+            try:
+                parsed = json.loads(v)
+                if isinstance(parsed, list):
+                    return parsed
+            except json.JSONDecodeError:
+                pass
+            # Split by comma if it's a comma-separated string
+            if "," in v:
+                return [origin.strip() for origin in v.split(",")]
+            # Single origin
+            return [v]
+        return v
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -24,6 +24,7 @@ class Vote(Base):
         secondary=vote_category,
         back_populates="votes",
         lazy="selectin",
+        order_by=vote_category.c.position,
     )
 
     donations: Mapped[list["Donation"]] = relationship(

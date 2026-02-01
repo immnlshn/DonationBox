@@ -150,6 +150,12 @@ class DonationCoinValidator(GPIOCoinValidator):
                 else:
                     logger.debug("Donation not processed - waiting for other component")
 
+        except ValueError as e:
+            # Category no longer valid for current vote (e.g., after vote update)
+            logger.error(f"Cannot process donation - invalid category: {e}")
+            # Clear the invalid category from state
+            container.state_store.delete("chosen_category")
+            logger.info("Cleared invalid category from state")
         except asyncio.CancelledError:
             # Task was cancelled because a new coin was inserted
             logger.debug("Donation creation cancelled - new coin inserted before timeout")

@@ -31,7 +31,8 @@ def setup_components(registry):
       component_id="coin_validator",
       pin=23,
       pulse_timeout=0.3,
-      bounce_time=0.01
+      bounce_time=0.01,
+      debounce_seconds=10.0
   )
   registry.register(coin_validator)
 

@@ -87,17 +87,20 @@ class ChooseCategoryButton(GPIOButton):
 
         Args:
             container: Application container
-            category_option: Category option number to set
+            category_option: Category option number (1-based button number)
         """
         try:
             # Wait for debounce period
             await asyncio.sleep(self._debounce_seconds)
 
-            # Debounce complete - set category with timestamp
-            logger.info(f"Debounce complete - setting category to {category_option}")
+            # Convert 1-based button number to 0-based array index
+            position = category_option - 1
+
+            # Debounce complete - set category position with timestamp
+            logger.info(f"Debounce complete - button {category_option} -> position {position}")
             current_timestamp = time.time()
             container.state_store.set("chosen_category", {
-                "category_id": category_option,
+                "position": position,
                 "timestamp": current_timestamp
             })
 
@@ -105,20 +108,24 @@ class ChooseCategoryButton(GPIOButton):
             try:
                 async with container.sessionmaker() as db:
                     websocket_service = container.get_websocket_service()
-                    category_service = container.create_category_service(db)
+                    voting_service = container.create_voting_service(db)
 
-                    # Try to get category name from database
-                    category_name = await category_service.get_category_name(category_option)
+                    # Get active vote to resolve position -> category
+                    active_vote = await voting_service.get_active_vote()
+                    if active_vote and 0 <= position < len(active_vote.categories):
+                        category = active_vote.categories[position]
 
-                    message = CategoryChosenMessage(
-                        data=CategoryChosenData(
-                            category_id=category_option,
-                            category_name=category_name,
-                            timestamp=datetime.fromtimestamp(current_timestamp)
+                        message = CategoryChosenMessage(
+                            data=CategoryChosenData(
+                                category_id=category.id,
+                                category_name=category.name,
+                                timestamp=datetime.fromtimestamp(current_timestamp)
+                            )
                         )
-                    )
-                    await websocket_service.broadcast_json(message.model_dump(mode='json'))
-                    logger.debug(f"WebSocket broadcast sent for category_chosen: category_id={category_option}")
+                        await websocket_service.broadcast_json(message.model_dump(mode='json'))
+                        logger.debug(f"WebSocket broadcast sent for category_chosen: button={category_option}, position={position}, category_id={category.id}")
+                    else:
+                        logger.warning(f"Cannot broadcast category_chosen: button={category_option}, position={position} invalid or no active vote")
             except Exception as e:
                 logger.error(f"Failed to broadcast category_chosen: {e}", exc_info=True)
 
@@ -150,6 +157,12 @@ class ChooseCategoryButton(GPIOButton):
                 else:
                     logger.debug("Donation not processed - waiting for other component")
 
+        except ValueError as e:
+            # Category no longer valid for current vote (e.g., after vote update)
+            logger.error(f"Cannot process donation - invalid category: {e}")
+            # Clear the invalid category from state
+            container.state_store.delete("chosen_category")
+            logger.info("Cleared invalid category from state")
         except Exception as e:
             logger.error(f"Failed to process donation: {e}", exc_info=True)
             raise
