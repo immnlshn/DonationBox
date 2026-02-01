@@ -57,6 +57,7 @@ export default function App() {
       <main className="stack">
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         {/* Call to Action – gleicher Stil, nur anderer Ort */}
         <section className="card card-cta">
           <CallToDonate text={callToActionText} />
@@ -66,10 +67,14 @@ export default function App() {
 =======
         {/* 1) Frage */}
 >>>>>>> Stashed changes
+=======
+        {/* 1) Frage */}
+>>>>>>> Stashed changes
         <section className="card card-hero">
           <DonationQuestion text={questionText} />
         </section>
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
         {/* Aktueller Stand */}
         <section className="card">
@@ -105,6 +110,8 @@ export default function App() {
 
 =======
 >>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
         {/* 2) Aktueller Stand direkt darunter */}
         <section className="card">
           <div className="section-head">
@@ -135,6 +142,9 @@ export default function App() {
           <CallToDonate text={callToActionText} />
         </section>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
