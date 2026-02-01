@@ -51,6 +51,7 @@ export default function App() {
       </header>
 
       <main className="stack">
+<<<<<<< Updated upstream
         {/* Call to Action – gleicher Stil, nur anderer Ort */}
         <section className="card card-cta">
           <CallToDonate text={callToActionText} />
@@ -87,7 +88,44 @@ export default function App() {
             </QRCodeInfo>
           </div>
         </section>
+=======
+        {/* 1) Frage */}
+        <section className="card card-hero">
+          <DonationQuestion text={questionText} />
+        </section>
+
+        {/* 2) Aktueller Stand direkt darunter */}
+        <section className="card">
+          <div className="section-head">
+            <h2 className="section-title">Aktueller Stand</h2>
+          </div>
+          <VotingResultsChart results={results} />
+        </section>
+
+        {/* 3) Rest wie gehabt */}
+        <section className="card">
+          <DonationSummary recentDonations={recentDonations} />
+        </section>
+
+        <section className="card">
+          <div className="donation-info">
+            <QRCodeInfo
+              qrImageSrc={qrCodeSvg}
+              clubLogoSrc={clubLogo}
+              qrInfoText={qrInfoText}
+              alt="QR Code for more information"
+            >
+              <DonationTarget charityName={charityName} />
+            </QRCodeInfo>
+          </div>
+        </section>
+
+        <section className="card card-cta">
+          <CallToDonate text={callToActionText} />
+        </section>
+>>>>>>> Stashed changes
       </main>
     </div>
   );
 }
+
