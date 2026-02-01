@@ -5,16 +5,17 @@ import DonationSummary from "./components/DonationSummary.jsx";
 import DonationTarget from "./components/DonationTarget.jsx";
 import QRCodeInfo from "./components/QRCodeInfo.jsx";
 import CallToDonate from "./components/CallToDonate.jsx";
-import VotingResultsChart from "./components/ResultBars.jsx";
+import VotingResultsChart from "./components/VotingResultsChart.jsx";
 
 import clubLogo from "./assets/logo.png";
 import qrCodeSvg from "./assets/qrcode.svg";
+import ThankYouPopUp from "./components/ThankYouPopUp.jsx";
 
 export default function App() {
   const questionText = "Wer ist der GOAT im Fußball?";
 
-  const recentDonations = ["1€", "2€", "0,50€"];
-  const totalAmount = "97,25€";
+  const recentDonations = ["1 €", "2 €", "0,50 €"];
+  const totalAmount = "97,25 €";
   const totalDonationsCount = 105;
 
   const charityName = "Lobby für Mädchen- Mädchenhaus Köln e.V.";
@@ -28,8 +29,11 @@ export default function App() {
     { name: "Cristiano Ronaldo", percent: 29.5 },
   ];
 
+  const popUpShown = false;
+
   return (
     <div className="page">
+      {popUpShown && <ThankYouPopUp donationData={{amount: 100, category: "Messi"}}/>}
       <header className="header">
         <div className="brand">
           <div className="brand-text">

@@ -29,7 +29,7 @@ class WebSocketService:
             self._connections.add(websocket)
         logger.info(f"WebSocket client connected. Total connections: {len(self._connections)}")
 
-    async def disconnect(self, websocket: WebSocket):
+    def disconnect(self, websocket: WebSocket):
         """
         Remove a WebSocket connection from the pool.
 
@@ -40,36 +40,10 @@ class WebSocketService:
             self._connections.discard(websocket)
         logger.info(f"WebSocket client disconnected. Total connections: {len(self._connections)}")
 
-    async def listen_for_messages(self, websocket: WebSocket, echo: bool = True, broadcast: bool = False):
-        """
-        Listen for incoming messages from a WebSocket client.
-        This keeps the connection open and handles incoming messages.
-
-        Args:
-            websocket: The WebSocket connection to listen on
-            echo: If True, echo messages back to the sender (default: True)
-            broadcast: If True, broadcast messages to all clients (default: False)
-        """
-        try:
-            while True:
-                data = await websocket.receive_text()
-                logger.debug(f"Received message from client: {data}")
-
-                if echo:
-                    await self.send_message(websocket, f"Echo: {data}")
-
-                if broadcast:
-                    await self.broadcast_message(f"Broadcast: {data}")
-        except Exception as e:
-            logger.debug(f"Error listening for messages: {e}")
-            raise
-
     async def listen_for_messages_json(
         self,
         websocket: WebSocket,
         message_handler: Optional[Callable[[WebSocket, Dict[str, Any]], Awaitable[None]]] = None,
-        echo: bool = False,
-        broadcast: bool = False
     ):
         """
         Listen for incoming JSON messages from a WebSocket client with custom handler.
@@ -79,13 +53,11 @@ class WebSocketService:
             websocket: The WebSocket connection to listen on
             message_handler: Optional async function to handle messages.
                            Signature: async def handler(websocket: WebSocket, data: Dict[str, Any])
-            echo: If True, echo messages back to the sender (default: False)
-            broadcast: If True, broadcast messages to all clients (default: False)
 
         Example:
             async def my_handler(ws: WebSocket, data: Dict[str, Any]):
                 if data.get("type") == "ping":
-                    await websocket_service.send_json(ws, {"type": "pong"})
+                    await websocket_service.broadcast_json({"type": "pong"})
 
             await websocket_service.listen_for_messages_json(websocket, my_handler)
         """
@@ -97,71 +69,9 @@ class WebSocketService:
                 # Call custom handler if provided
                 if message_handler:
                     await message_handler(websocket, data)
-
-                if echo:
-                    await self.send_json(websocket, {"echo": data})
-
-                if broadcast:
-                    await self.broadcast_json({"broadcast": data})
         except Exception as e:
             logger.debug(f"Error listening for JSON messages: {e}")
             raise
-
-    async def send_message(self, websocket: WebSocket, message: str):
-        """
-        Send a message to a specific WebSocket client.
-
-        Args:
-            websocket: The WebSocket connection to send to
-            message: The message to send
-        """
-        try:
-            await websocket.send_text(message)
-        except Exception as e:
-            logger.error(f"Error sending message to client: {e}")
-            await self.disconnect(websocket)
-
-    async def send_json(self, websocket: WebSocket, data: Dict[str, Any]):
-        """
-        Send JSON data to a specific WebSocket client.
-
-        Args:
-            websocket: The WebSocket connection to send to
-            data: The data to send as JSON
-        """
-        try:
-            await websocket.send_json(data)
-        except Exception as e:
-            logger.error(f"Error sending JSON to client: {e}")
-            await self.disconnect(websocket)
-
-    async def broadcast_message(self, message: str):
-        """
-        Broadcast a text message to all connected clients.
-        Thread-safe and can be called from different threads.
-
-        Args:
-            message: The message to broadcast
-        """
-        with self._lock:
-            connections = self._connections.copy()
-
-        if not connections:
-            logger.debug("No WebSocket clients connected, skipping broadcast")
-            return
-
-        disconnected = set()
-        for websocket in connections:
-            try:
-                await websocket.send_text(message)
-            except Exception as e:
-                logger.error(f"Error broadcasting message to client: {e}")
-                disconnected.add(websocket)
-
-        # Clean up disconnected clients
-        if disconnected:
-            with self._lock:
-                self._connections -= disconnected
 
     async def broadcast_json(self, data: Dict[str, Any]):
         """
@@ -191,6 +101,27 @@ class WebSocketService:
             with self._lock:
                 self._connections -= disconnected
 
+    def broadcast_json_sync(self, data: Dict[str, Any]):
+        """
+        Synchronous wrapper for broadcasting JSON from synchronous contexts.
+        Schedules the broadcast as an asyncio task if event loop is running.
+        Can be called from both sync and async contexts.
+
+        Args:
+            data: The data to broadcast as JSON
+        """
+        try:
+            asyncio.get_running_loop()
+            # We're in an async context - schedule the broadcast task
+            # Store task reference to prevent premature garbage collection
+            _ = asyncio.create_task(self.broadcast_json(data))
+            logger.debug(f"Broadcast scheduled in event loop, {len(self._connections)} connections")
+        except RuntimeError:
+            # No running event loop - shouldn't happen in FastAPI but log it
+            logger.warning("Cannot broadcast: No running event loop found")
+        except Exception as e:
+            logger.error(f"Error scheduling broadcast: {e}", exc_info=True)
+
     def get_connection_count(self) -> int:
         """
         Get the current number of connected clients.
@@ -201,49 +132,32 @@ class WebSocketService:
         with self._lock:
             return len(self._connections)
 
-    def broadcast_message_sync(self, message: str):
+    async def close_all_connections(self):
         """
-        Synchronous wrapper for broadcasting messages from non-async contexts.
-        Useful for calling from threads that don't have an event loop.
+        Close all WebSocket connections gracefully.
+        Should be called during application shutdown.
+        """
+        with self._lock:
+            connections = self._connections.copy()
+            self._connections.clear()
 
-        Args:
-            message: The message to broadcast
-        """
-        try:
-            # Get the running event loop or create a new one
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                # If loop is running, schedule the coroutine
-                asyncio.create_task(self.broadcast_message(message))
-            else:
-                # If no loop is running, run it
-                loop.run_until_complete(self.broadcast_message(message))
-        except RuntimeError:
-            # No event loop in current thread, create a task in the main loop
-            logger.warning("No event loop in current thread, attempting to schedule broadcast")
-            # This requires getting the main event loop reference
-            # For now, log a warning - the caller should use the async version
-            logger.error("Cannot broadcast from non-async context without event loop")
+        if not connections:
+            logger.debug("No WebSocket connections to close")
+            return
 
-    def broadcast_json_sync(self, data: Dict[str, Any]):
-        """
-        Synchronous wrapper for broadcasting JSON from non-async contexts.
-        Useful for calling from threads that don't have an event loop.
+        logger.info(f"Closing {len(connections)} WebSocket connections...")
+        for websocket in connections:
+            try:
+                await websocket.close()
+            except Exception as e:
+                logger.error(f"Error closing WebSocket connection: {e}")
 
-        Args:
-            data: The data to broadcast as JSON
-        """
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                asyncio.create_task(self.broadcast_json(data))
-            else:
-                loop.run_until_complete(self.broadcast_json(data))
-        except RuntimeError:
-            logger.warning("No event loop in current thread, attempting to schedule broadcast")
-            logger.error("Cannot broadcast from non-async context without event loop")
+        logger.info("All WebSocket connections closed")
 
 
 # Global WebSocket service instance
 websocket_service = WebSocketService()
+
+
+
 
