@@ -8,7 +8,6 @@ Handles application startup and shutdown events, including:
 - Event handler
 """
 
-import asyncio
 import logging
 from contextlib import asynccontextmanager
 

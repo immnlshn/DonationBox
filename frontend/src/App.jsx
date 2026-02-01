@@ -6,12 +6,13 @@ import DonationTarget from "./components/DonationTarget.jsx";
 import QRCodeInfo from "./components/QRCodeInfo.jsx";
 import CallToDonate from "./components/CallToDonate.jsx";
 import VotingResultsChart from "./components/VotingResultsChart.jsx";
+import DonationSessionPopup from "./components/DonationSessionPopup.jsx";
 
 import clubLogo from "./assets/logo.png";
 import qrCodeSvg from "./assets/qrcode.svg";
 
-import { useDonationsWs } from "./state/useDonationsWs";
-import { centsToEuroString } from "./state/donationsState";
+import { useDonationStore } from "./state/useDonationStore";
+import { centsToEuroString } from "./state/donationStore";
 
 export default function App() {
   // Static UI text (not backend-driven)
@@ -20,15 +21,37 @@ export default function App() {
     "Scannen Sie den QR-Code, um mehr über die Spendenorganisation zu erfahren.";
   const callToActionText = "Spenden Sie Ihr Bargeld und stimmen Sie ab!";
 
-  // Dynamic state
-  const s = useDonationsWs();
+  // Dynamic state from unified store
+  const store = useDonationStore();
+  const {
+    totalAmountCents,
+    totalDonationsCount,
+    recentDonationsCents,
+    questionText,
+    results,
+    endSession,
+  } = store;
 
-  const totalAmount = centsToEuroString(s.totalAmountCents);
-  const totalDonationsCount = s.totalDonationsCount;
-  const recentDonations = s.recentDonationsCents.map(centsToEuroString);
+  // Session state for popup
+  const sessionState = {
+    sessionState: store.sessionState,
+    categoryId: store.sessionCategoryId,
+    categoryName: store.sessionCategoryName,
+    categoryChosenAt: store.sessionCategoryChosenAt,
+    totalMoneyInSession: store.sessionTotalMoney,
+    lastMoneyInsertedAt: store.sessionLastMoneyAt,
+    donationData: store.sessionDonationData,
+    donationCompletedAt: store.sessionDonationCompletedAt,
+  };
+
+  const totalAmount = centsToEuroString(totalAmountCents);
+  const recentDonations = recentDonationsCents.map(centsToEuroString);
 
   return (
     <div className="page">
+      {/* Session-based Popup - stays open throughout donation flow */}
+      <DonationSessionPopup session={sessionState} onSessionEnd={endSession} />
+
       <header className="header">
         <div className="brand">
           <div className="brand-text">
@@ -52,7 +75,7 @@ export default function App() {
       <main className="stack">
         <section className="card card-hero">
           {/* Comes from GET /voting/active if available; otherwise a generic fallback */}
-          <DonationQuestion text={s.questionText} />
+          <DonationQuestion text={questionText} />
         </section>
 
         <section className="card">
@@ -82,7 +105,7 @@ export default function App() {
           </div>
 
           {/* Always shows bars (0%) because results are never empty */}
-          <VotingResultsChart results={s.results} />
+          <VotingResultsChart results={results} />
         </section>
       </main>
     </div>

@@ -15,7 +15,7 @@ Usage in Routes:
 
 from typing import AsyncGenerator
 
-from fastapi import Depends, Request
+from fastapi import Depends, Request, WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core import AppContainer
@@ -26,7 +26,7 @@ from backend.services.websocket.WebSocketService import WebSocketService
 
 # Container accessor
 
-def get_container(request: Request):
+def get_container(request: Request) -> AppContainer:
     """
     Get the application container from app.state.
 
@@ -41,7 +41,7 @@ def get_container(request: Request):
 
 # Database session dependency
 
-async def get_db(container: AppContainer = Depends(get_container)) -> AsyncGenerator[AsyncSession, None]:
+async def get_db(request: Request) -> AsyncGenerator[AsyncSession, None]:
     """
     FastAPI Dependency for Async Database Sessions.
 
@@ -52,6 +52,7 @@ async def get_db(container: AppContainer = Depends(get_container)) -> AsyncGener
         async def my_route(db: AsyncSession = Depends(get_db)):
             ...
     """
+    container = get_container(request)
     async with container.sessionmaker() as session:
         try:
             yield session
@@ -67,32 +68,53 @@ async def get_db(container: AppContainer = Depends(get_container)) -> AsyncGener
 # Note: We don't expose Repository dependencies directly anymore.
 # Services are created via Container factory methods.
 
-def get_websocket_service(container: AppContainer = Depends(get_container)) -> WebSocketService:
+def get_websocket_service(request: Request) -> WebSocketService:
     """
-    FastAPI Dependency for WebSocketService.
+    FastAPI Dependency for WebSocketService (HTTP endpoints).
     Returns the WebSocketService from the container.
     """
-    return container.ws_hub
+    container = get_container(request)
+    return container.websocket_service
+
+
+def get_websocket_service_ws(websocket: WebSocket) -> WebSocketService:
+    """
+    FastAPI Dependency for WebSocketService (WebSocket endpoints).
+    WebSocket endpoints don't have a Request object, so we access the app directly.
+
+    Args:
+        websocket: WebSocket connection instance
+
+    Returns:
+        WebSocketService instance
+    """
+    return websocket.app.state.container.websocket_service
 
 
 def get_voting_service(
-    container: AppContainer = Depends(get_container),
+    request: Request,
     db: AsyncSession = Depends(get_db)
 ) -> VotingService:
     """
     FastAPI Dependency for VotingService.
     Uses the container's factory method.
     """
+    container = get_container(request)
     return container.create_voting_service(db)
 
 
 def get_donation_service(
-    container: AppContainer = Depends(get_container),
+    request: Request,
     db: AsyncSession = Depends(get_db)
 ) -> DonationService:
     """
     FastAPI Dependency for DonationService.
     Uses the container's factory method.
     """
+    container = get_container(request)
     return container.create_donation_service(db)
+
+
+
+
 

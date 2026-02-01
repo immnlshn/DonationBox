@@ -1,5 +1,6 @@
 from .base import Base
-from .vote import Vote, vote_category
+from .associations import vote_category
+from .vote import Vote
 from .category import Category
 from .donation import Donation
 

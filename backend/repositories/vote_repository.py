@@ -6,12 +6,14 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Optional, Iterable
 
-from sqlalchemy import select
+from sqlalchemy import select, insert, delete
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from .base_repository import BaseRepository
 from backend.models import Vote, Category
+from backend.models.associations import vote_category
 
 
 class VoteRepository(BaseRepository[Vote]):
@@ -30,11 +32,14 @@ class VoteRepository(BaseRepository[Vote]):
         """
         Create a new vote.
 
+        Categories are associated in the order they appear in category_ids.
+        The position in the list determines the display order.
+
         Args:
             question: Vote question text
             start_time: Vote start time
             end_time: Vote end time
-            category_ids: List of category IDs to associate
+            category_ids: List of category IDs to associate (order matters)
 
         Returns:
             Created Vote entity
@@ -54,16 +59,36 @@ class VoteRepository(BaseRepository[Vote]):
             end_time=end_time,
         )
 
-        result = await self.db.execute(
-            select(Category).where(Category.id.in_(list(category_ids)))
-        )
-        categories = list(result.scalars().all())
-        vote.categories = categories
-
         self.db.add(vote)
+        await self.flush()  # Flush to get vote.id
+
+        # Insert vote-category associations with position
+        category_id_list = list(category_ids)
+        for position, category_id in enumerate(category_id_list):
+            stmt = insert(vote_category).values(
+                vote_id=vote.id,
+                category_id=category_id,
+                position=position,
+            )
+            await self.db.execute(stmt)
+
         await self.commit()
         await self.refresh(vote)
         return vote
+
+    async def get_by_id(self, vote_id: int) -> Optional[Vote]:
+        """
+        Get a vote by ID with categories eagerly loaded.
+
+        Args:
+            vote_id: Vote ID
+
+        Returns:
+            Vote entity with categories loaded, or None if not found
+        """
+        stmt = select(Vote).where(Vote.id == vote_id).options(selectinload(Vote.categories))
+        result = await self.db.execute(stmt)
+        return result.scalars().first()
 
     async def update(
         self,
@@ -101,11 +126,19 @@ class VoteRepository(BaseRepository[Vote]):
         if end_time is not None:
             vote.end_time = end_time
         if category_ids is not None:
-            result = await self.db.execute(
-                select(Category).where(Category.id.in_(list(category_ids)))
-            )
-            categories = list(result.scalars().all())
-            vote.categories = categories
+            # Delete old associations
+            delete_stmt = delete(vote_category).where(vote_category.c.vote_id == vote_id)
+            await self.db.execute(delete_stmt)
+
+            # Insert new associations with position
+            category_id_list = list(category_ids)
+            for position, category_id in enumerate(category_id_list):
+                insert_stmt = insert(vote_category).values(
+                    vote_id=vote_id,
+                    category_id=category_id,
+                    position=position,
+                )
+                await self.db.execute(insert_stmt)
 
         # Validate that start_time is before end_time
         if vote.start_time >= vote.end_time:
@@ -113,7 +146,7 @@ class VoteRepository(BaseRepository[Vote]):
                 f"start_time ({vote.start_time}) must be before end_time ({vote.end_time})"
             )
 
-        await self.commit()
+        await self.flush()
         await self.refresh(vote)
         return vote
 

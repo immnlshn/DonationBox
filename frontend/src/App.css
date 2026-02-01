@@ -143,7 +143,7 @@ body{
 /* ---------- summary ---------- */
 .donation-summary{
   padding-top:22px;
-  padding-bottom: 0px;
+  padding-bottom: 0;
   border-top:1px solid var(--line);
 }
 
@@ -409,6 +409,9 @@ body{
   .fill{ transition:none !important; }
 }
 
+/* ---------- popups / notifications ---------- */
+
+/* Overlay (old ThankYouPopUp style) */
 .popup {
   position: fixed;
   top: 0;
@@ -422,15 +425,32 @@ body{
   animation: fadeIn 0.3s ease-out;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+/* New notification overlay */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: popupFadeIn 0.2s ease-out;
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popupFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Old ThankYouPopUp inner */
 .popup-inner {
   background: #fff;
   padding: 8rem;
@@ -440,6 +460,31 @@ body{
   flex-direction: column;
   gap: 8rem;
   animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* New notification container */
+.popup-container {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 500px;
+  width: min(500px, 90vw);
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.3);
+  animation: popupSlideUp 0.3s ease-out;
+  position: relative;
+}
+
+/* Popup type borders */
+.popup-success {
+  border-top: 4px solid var(--bar-a);
+}
+
+.popup-info {
+  border-top: 4px solid var(--bar-b);
+}
+
+.popup-warning {
+  border-top: 4px solid var(--cta);
 }
 
 @keyframes popIn {
@@ -453,6 +498,18 @@ body{
   }
 }
 
+@keyframes popupSlideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Popup content */
 .popup-content h1,
 .popup-content p {
   margin: 0;
@@ -466,7 +523,59 @@ body{
   gap: 1.25rem;
 }
 
+/* Popup header */
+.popup-header {
+  margin: 0 0 16px 0;
+  font-size: clamp(28px, 3vw, 36px);
+  font-weight: 1000;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  text-align: center;
+}
+
+/* For old ThankYouPopUp (larger) */
+.popup-inner .popup-header {
+  font-size: 4.5rem;
+}
+
+/* Popup body text */
+.popup-body {
+  margin: 16px 0;
+  color: var(--text);
+  line-height: 1.6;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+/* Popup footer */
+.popup-footer {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* For old ThankYouPopUp footer */
+.popup-inner .popup-footer {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  border: none;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* Popup image */
 .popup-image {
+  width: 120px;
+  margin: 16px auto;
+  display: block;
+}
+
+/* For old ThankYouPopUp (larger with animation) */
+.popup-inner .popup-image {
   width: 24rem;
   animation: wobble 2s ease-in-out infinite;
 }
@@ -483,15 +592,19 @@ body{
   }
 }
 
-.popup-footer {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
+/* Utility classes */
+.popup-text-center {
+  text-align: center;
 }
 
-.popup-header {
-  font-size: 4.5rem;
-  text-align: center;
+.popup-text-large {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.popup-text-highlight {
+  color: var(--bar-a);
+  font-weight: 900;
 }
 
 .popup-text-description {
@@ -502,3 +615,57 @@ body{
   font-size: 1.25rem;
   color: var(--muted);
 }
+
+/* Money Counter Display */
+.popup-money-counter {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f2a900 0%, #ff9500 100%);
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(242, 169, 0, 0.3);
+}
+
+.money-amount-display {
+  font-size: 3rem;
+  font-weight: 900;
+  color: white;
+  text-align: center;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  animation: pulse-scale 0.3s ease-out;
+}
+
+@keyframes pulse-scale {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Waiting Indicator */
+.popup-waiting-indicator {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.waiting-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(242, 169, 0, 0.2);
+  border-top-color: var(--bar-a);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+

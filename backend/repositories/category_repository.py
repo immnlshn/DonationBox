@@ -114,3 +114,52 @@ class CategoryRepository(BaseRepository[Category]):
         await self.commit()
         return True
 
+    async def is_orphaned(self, category_id: int) -> bool:
+        """
+        Check if a category is orphaned (not used by any vote or donation).
+
+        Args:
+            category_id: Category ID
+
+        Returns:
+            True if category has no votes and no donations, False otherwise
+        """
+        from sqlalchemy import func
+        from sqlalchemy.orm import selectinload
+
+        # Load category with relationships
+        stmt = select(Category).where(Category.id == category_id).options(
+            selectinload(Category.votes),
+            selectinload(Category.donations)
+        )
+        result = await self.db.execute(stmt)
+        category = result.scalars().first()
+
+        if not category:
+            return False
+
+        # Check if category has any votes or donations
+        has_votes = len(category.votes) > 0
+        has_donations = len(category.donations) > 0
+
+        return not has_votes and not has_donations
+
+    async def delete_orphaned_categories(self, category_ids: list[int]) -> int:
+        """
+        Delete categories that are orphaned (no votes, no donations).
+
+        Args:
+            category_ids: List of category IDs to check and potentially delete
+
+        Returns:
+            Number of categories deleted
+        """
+        deleted_count = 0
+        for category_id in category_ids:
+            # Expire all cached objects to ensure fresh data from DB
+            self.db.expire_all()
+
+            if await self.is_orphaned(category_id):
+                if await self.delete(category_id):
+                    deleted_count += 1
+        return deleted_count

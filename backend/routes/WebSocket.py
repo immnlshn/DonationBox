@@ -1,7 +1,7 @@
 import logging
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 
-from backend.services.dependencies import get_websocket_service
+from backend.services.dependencies import get_websocket_service_ws
 from backend.services.websocket.WebSocketService import WebSocketService
 
 logger = logging.getLogger(__name__)
@@ -12,7 +12,7 @@ router = APIRouter()
 @router.websocket("/ws")
 async def websocket_endpoint(
     websocket: WebSocket,
-    ws_service: WebSocketService = Depends(get_websocket_service)
+    ws_service: WebSocketService = Depends(get_websocket_service_ws)
 ):
     """
     WebSocket endpoint for real-time communication.
@@ -36,4 +36,7 @@ async def websocket_endpoint(
     except WebSocketDisconnect:
         ws_service.disconnect(websocket)
         logger.info("Client disconnected")
-
+    except Exception as e:
+        logger.error(f"WebSocket error: {e}")
+        ws_service.disconnect(websocket)
+        raise
