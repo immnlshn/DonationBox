@@ -4,15 +4,15 @@ DonationService - Manages the creation and management of donations.
 from __future__ import annotations
 
 import logging
+import time
 from datetime import datetime
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 
 from backend.repositories import DonationRepository
 from backend.models import Donation
-
-if TYPE_CHECKING:
-    from backend.services.voting import VotingService
-    from backend.services.websocket.WebSocketService import WebSocketService
+from backend.services.voting import VotingService
+from backend.services.websocket.WebSocketService import WebSocketService
+from backend.core.state_store import StateStore
 
 logger = logging.getLogger(__name__)
 
@@ -128,5 +128,79 @@ class DonationService:
 
         return donation
 
+
+    async def process_pending_donation_from_state(
+        self,
+        state_store: "StateStore",
+        ttl_seconds: float = 30.0
+    ) -> Optional[Donation]:
+        """
+        Process a pending donation from state store.
+
+        Checks if both category and money are present in state and not expired (< ttl_seconds old).
+        If both conditions are met, creates donation and clears state.
+
+        Args:
+            state_store: State store instance to read from
+            ttl_seconds: Maximum age in seconds for category and money (default: 30s)
+
+        Returns:
+            Created Donation or None if conditions not met
+        """
+        current_time = time.time()
+
+        # Get category from state
+        category_data = state_store.get("chosen_category", None)
+        if not category_data or not isinstance(category_data, dict):
+            logger.debug("No category selected or invalid format")
+            return None
+
+        category_id = category_data.get("category_id")
+        category_timestamp = category_data.get("timestamp", 0)
+
+        # Check category TTL
+        if current_time - category_timestamp > ttl_seconds:
+            logger.info(f"Category expired (age: {current_time - category_timestamp:.1f}s > {ttl_seconds}s)")
+            state_store.delete("chosen_category")
+            return None
+
+        # Get money from state
+        money_data = state_store.get("total_donation_cents", None)
+        if not money_data or not isinstance(money_data, dict):
+            logger.debug("No money inserted or invalid format")
+            return None
+
+        amount_cents = money_data.get("amount", 0)
+        money_timestamp = money_data.get("timestamp", 0)
+
+        # Check money amount
+        if amount_cents <= 0:
+            logger.debug("No money inserted (amount: 0)")
+            return None
+
+        # Check money TTL
+        if current_time - money_timestamp > ttl_seconds:
+            logger.info(f"Money expired (age: {current_time - money_timestamp:.1f}s > {ttl_seconds}s)")
+            state_store.set("total_donation_cents", {"amount": 0, "timestamp": current_time})
+            return None
+
+        # Both present and valid - create donation
+        logger.info(
+            f"Processing donation: category_id={category_id}, amount_cents={amount_cents} "
+            f"(category_age={current_time - category_timestamp:.1f}s, money_age={current_time - money_timestamp:.1f}s)"
+        )
+
+        donation = await self.create_donation_for_active_vote(
+            category_id=category_id,
+            amount_cents=amount_cents
+        )
+
+        if donation:
+            # Clear state after successful donation
+            logger.info("Donation successful - clearing state")
+            state_store.set("total_donation_cents", {"amount": 0, "timestamp": current_time})
+            state_store.delete("chosen_category")
+
+        return donation
 
 

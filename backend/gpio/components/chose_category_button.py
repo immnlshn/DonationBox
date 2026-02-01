@@ -1,4 +1,6 @@
+import asyncio
 import logging
+import time
 
 from backend.gpio import GPIOEvent
 from backend.gpio.components.gpio_button import GPIOButton
@@ -24,6 +26,7 @@ class ChooseCategoryButton(GPIOButton):
             amount_cents: int = 10,
             bounce_time: float = 0.2,
             pull_up: bool = True,
+            debounce_seconds: float = 2.0,
     ):
         """
         Initialize VoteButton.
@@ -35,6 +38,7 @@ class ChooseCategoryButton(GPIOButton):
             amount_cents: Amount in cents per button press
             bounce_time: Debounce time in seconds
             pull_up: Use pull-up resistor (True) or pull-down (False)
+            debounce_seconds: Minimum time between category changes in seconds
         """
         super().__init__(
             component_id=component_id,
@@ -44,20 +48,85 @@ class ChooseCategoryButton(GPIOButton):
         )
         self._representing_option = representing_option
         self._amount_cents = amount_cents
+        self._debounce_seconds = debounce_seconds
 
     @event("button_pressed")
     async def handle_press(self, gpio_event: GPIOEvent, container: AppContainer) -> None:
         """
-        Handle button press - creates donation for active vote.
+        Handle button press - sets category after debounce.
 
-        This runs in AsyncIO event loop scope (NOT in GPIO thread).
-        Called by EventHandler after event is read from queue.
-        Container is injected via dependency injection.
+        Multiple buttons can be pressed, but only the last one wins (via global task cancellation).
 
         Args:
             gpio_event: GPIO event from the queue
             container: Application container (injected by EventHandler)
         """
-        logger.debug(
-            f"ChooseCategoryButton {self._representing_option} pressed on pin {self.pin} at time {gpio_event.timestamp}")
-        container.state_store.set("chosen_category", self._representing_option)
+        logger.info(f"Button pressed for category {self._representing_option} on pin {self.pin}")
+
+        # Cancel any pending task from ANY button (last button wins)
+        pending_task = container.state_store.get("pending_category_task", None)
+        if pending_task and not pending_task.done():
+            logger.debug(f"Cancelling previous category task - button {self._representing_option} pressed")
+            pending_task.cancel()
+
+        # Schedule category update after debounce period
+        task = asyncio.create_task(
+            self._update_category_after_debounce(container, self._representing_option)
+        )
+        container.state_store.set("pending_category_task", task)
+        logger.debug(f"Scheduled category {self._representing_option} in {self._debounce_seconds}s")
+
+    async def _update_category_after_debounce(self, container: AppContainer, category_option: int) -> None:
+        """
+        Wait for debounce period, then update the chosen category in state store with timestamp.
+
+        Gets cancelled if another button is pressed before the timer expires.
+        Tries to process donation afterwards (DonationService checks timestamps).
+
+        Args:
+            container: Application container
+            category_option: Category option number to set
+        """
+        try:
+            # Wait for debounce period
+            await asyncio.sleep(self._debounce_seconds)
+
+            # Debounce complete - set category with timestamp
+            logger.info(f"Debounce complete - setting category to {category_option}")
+            container.state_store.set("chosen_category", {
+                "category_id": category_option,
+                "timestamp": time.time()
+            })
+
+            # Try to process donation (DonationService will validate timestamps)
+            await self._try_process_donation(container)
+
+        except asyncio.CancelledError:
+            logger.debug(f"Category {category_option} cancelled - another button pressed")
+            raise
+
+    async def _try_process_donation(self, container: AppContainer) -> None:
+        """
+        Try to process a donation by calling DonationService.
+
+        DonationService will check if both category and money are present and not expired.
+
+        Args:
+            container: Application container
+        """
+        try:
+            async with container.sessionmaker() as db:
+                donation_service = container.create_donation_service(db)
+                donation = await donation_service.process_pending_donation_from_state(
+                    state_store=container.state_store
+                )
+
+                if donation:
+                    logger.info(f"Donation processed successfully: donation_id={donation.id}")
+                else:
+                    logger.debug("Donation not processed - waiting for other component")
+
+        except Exception as e:
+            logger.error(f"Failed to process donation: {e}", exc_info=True)
+            raise
+

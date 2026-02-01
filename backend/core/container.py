@@ -130,5 +130,7 @@ class AppContainer:
     return DonationService(
         donation_repo=donation_repo,
         voting_service=voting_service,
-        websocket_service=self.ws_hub,
+        websocket_service=self.ws_hub
     )
+
+

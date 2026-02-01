@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 from datetime import datetime
 from sqlalchemy import Boolean, DateTime, Integer, String, Table, Column, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
-if TYPE_CHECKING:
-    from .category import Category
-    from .donation import Donation
+from .category import Category
+from .donation import Donation
 
 # Association table (M:N)
 vote_category = Table(

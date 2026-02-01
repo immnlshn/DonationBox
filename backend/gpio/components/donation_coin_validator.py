@@ -2,7 +2,9 @@
 Donation Coin Validator component.
 Handles coin insertions and creates donations.
 """
+import asyncio
 import logging
+import time
 
 from backend.gpio import GPIOEvent
 from backend.gpio.components.gpio_coin_validator import GPIOCoinValidator
@@ -36,6 +38,7 @@ class DonationCoinValidator(GPIOCoinValidator):
         pulse_timeout: float = 0.3,
         bounce_time: float = 0.01,
         puls_to_cent: dict = None,
+        debounce_seconds: float = 2.0,
     ):
         """
         Initialize DonationCoinValidator.
@@ -46,6 +49,7 @@ class DonationCoinValidator(GPIOCoinValidator):
             pulse_timeout: Timeout in seconds to consider coin sequence complete
             bounce_time: Debounce time in seconds
             cents_per_pulse: Amount in cents per pulse (default: 100 = 1 EUR)
+            debounce_seconds: Minimum time between donation state updates in seconds
         """
         super().__init__(
             component_id=component_id,
@@ -56,6 +60,8 @@ class DonationCoinValidator(GPIOCoinValidator):
         if not puls_to_cent:
             puls_to_cent = {1: 10, 2: 20, 3: 50, 4: 100, 5: 200}
         self._puls_to_cent = puls_to_cent
+        self._debounce_seconds = debounce_seconds
+        self._pending_donation_task = None
 
     @event("coin_inserted")
     async def handle_coin_insertion(
@@ -78,12 +84,57 @@ class DonationCoinValidator(GPIOCoinValidator):
         amount_cents = self._puls_to_cent.get(pulse_count, 0)
         logger.info(f"Coin inserted with {pulse_count} pulses, amount: {amount_cents} cents")
 
+        # Always increment money counter with timestamp
+        current_total = container.state_store.get("total_donation_cents", {}).get("amount", 0) if isinstance(container.state_store.get("total_donation_cents", {}), dict) else 0
+        new_total = current_total + amount_cents
+        container.state_store.set("total_donation_cents", {
+            "amount": new_total,
+            "timestamp": time.time()
+        })
+        logger.info(f"Total donation amount updated: {new_total} cents (added {amount_cents} cents)")
 
-        # TODO: Implement donation creation logic here
-        # This would be similar to ChooseCategoryButton's handle_press method
-        # Example:
-        # donation_service = container.donation_service()
-        # await donation_service.create_donation_from_coin(amount_cents)
+        # Cancel any pending donation task (new coin resets the timer)
+        if self._pending_donation_task and not self._pending_donation_task.done():
+            logger.debug("Cancelling previous donation task - new coin inserted")
+            self._pending_donation_task.cancel()
 
-        # For now, just log the event
-        logger.info(f"Would create donation with amount: {amount_cents} cents")
+        # Schedule donation creation after debounce period
+        self._pending_donation_task = asyncio.create_task(
+            self._create_donation_after_debounce(container, new_total)
+        )
+        logger.debug(f"Scheduled donation creation in {self._debounce_seconds} seconds")
+
+    async def _create_donation_after_debounce(self, container: AppContainer, total_cents: int) -> None:
+        """
+        Wait for debounce period, then try to create donation with accumulated amount.
+
+        This gets cancelled if a new coin is inserted before the timer expires.
+        DonationService will check if both money and category are present and not expired.
+
+        Args:
+            container: Application container
+            total_cents: Total amount in cents to donate (kept for signature compatibility)
+        """
+        try:
+            # Wait for debounce period
+            await asyncio.sleep(self._debounce_seconds)
+
+            # If we get here, no new coin was inserted - try to process donation
+            logger.info("Debounce period expired - attempting to process donation")
+
+            async with container.sessionmaker() as db:
+                donation_service = container.create_donation_service(db)
+                donation = await donation_service.process_pending_donation_from_state(
+                    state_store=container.state_store
+                )
+
+                if donation:
+                    logger.info(f"Donation processed successfully: donation_id={donation.id}")
+                else:
+                    logger.debug("Donation not processed - waiting for other component")
+
+        except asyncio.CancelledError:
+            # Task was cancelled because a new coin was inserted
+            logger.debug("Donation creation cancelled - new coin inserted before timeout")
+            raise
+
