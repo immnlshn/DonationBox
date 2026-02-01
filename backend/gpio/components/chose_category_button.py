@@ -1,11 +1,13 @@
 import asyncio
 import logging
 import time
+from datetime import datetime
 
 from backend.gpio import GPIOEvent
 from backend.gpio.components.gpio_button import GPIOButton
 from backend.core.container import AppContainer
 from backend.core.decorators import event
+from backend.schemas.websocket import CategoryChosenMessage, CategoryChosenData
 
 logger = logging.getLogger(__name__)
 
@@ -93,10 +95,32 @@ class ChooseCategoryButton(GPIOButton):
 
             # Debounce complete - set category with timestamp
             logger.info(f"Debounce complete - setting category to {category_option}")
+            current_timestamp = time.time()
             container.state_store.set("chosen_category", {
                 "category_id": category_option,
-                "timestamp": time.time()
+                "timestamp": current_timestamp
             })
+
+            # Broadcast category_chosen event via WebSocket
+            try:
+                async with container.sessionmaker() as db:
+                    websocket_service = container.get_websocket_service()
+                    category_service = container.create_category_service(db)
+
+                    # Try to get category name from database
+                    category_name = await category_service.get_category_name(category_option)
+
+                    message = CategoryChosenMessage(
+                        data=CategoryChosenData(
+                            category_id=category_option,
+                            category_name=category_name,
+                            timestamp=datetime.fromtimestamp(current_timestamp)
+                        )
+                    )
+                    await websocket_service.broadcast_json(message.model_dump(mode='json'))
+                    logger.debug(f"WebSocket broadcast sent for category_chosen: category_id={category_option}")
+            except Exception as e:
+                logger.error(f"Failed to broadcast category_chosen: {e}", exc_info=True)
 
             # Try to process donation (DonationService will validate timestamps)
             await self._try_process_donation(container)

@@ -72,7 +72,7 @@ def get_websocket_service(container: AppContainer = Depends(get_container)) -> W
     FastAPI Dependency for WebSocketService.
     Returns the WebSocketService from the container.
     """
-    return container.ws_hub
+    return container.websocket_service
 
 
 def get_voting_service(

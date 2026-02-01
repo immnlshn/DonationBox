@@ -13,6 +13,11 @@ from backend.models import Donation
 from backend.services.voting import VotingService
 from backend.services.websocket.WebSocketService import WebSocketService
 from backend.core.state_store import StateStore
+from backend.schemas.websocket import (
+    DonationCreatedMessage,
+    DonationCreatedData,
+    DonationTotals,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -106,15 +111,16 @@ class DonationService:
 
         # Broadcast donation event to all connected WebSocket clients
         try:
-            await self.websocket_service.broadcast_json({
-                "type": "donation_created",
-                "data": {
-                    "vote_id": active_vote.id,
-                    "category_id": category_id,
-                    "amount_cents": amount_cents,
-                    "totals": totals
-                }
-            })
+            message = DonationCreatedMessage(
+                data=DonationCreatedData(
+                    vote_id=active_vote.id,
+                    category_id=category_id,
+                    amount_cents=amount_cents,
+                    totals=DonationTotals(**totals),
+                    timestamp=donation.timestamp or datetime.now(),
+                )
+            )
+            await self.websocket_service.broadcast_json(message.model_dump(mode='json'))
             logger.debug(
                 f"WebSocket broadcast sent for donation_id={donation.id}, "
                 f"connections={self.websocket_service.get_connection_count()}"

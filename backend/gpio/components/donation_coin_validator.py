@@ -5,11 +5,13 @@ Handles coin insertions and creates donations.
 import asyncio
 import logging
 import time
+from datetime import datetime
 
 from backend.gpio import GPIOEvent
 from backend.gpio.components.gpio_coin_validator import GPIOCoinValidator
 from backend.core.container import AppContainer
 from backend.core.decorators import event
+from backend.schemas.websocket import MoneyInsertedMessage, MoneyInsertedData
 
 logger = logging.getLogger(__name__)
 
@@ -87,11 +89,27 @@ class DonationCoinValidator(GPIOCoinValidator):
         # Always increment money counter with timestamp
         current_total = container.state_store.get("total_donation_cents", {}).get("amount", 0) if isinstance(container.state_store.get("total_donation_cents", {}), dict) else 0
         new_total = current_total + amount_cents
+        current_timestamp = time.time()
         container.state_store.set("total_donation_cents", {
             "amount": new_total,
-            "timestamp": time.time()
+            "timestamp": current_timestamp
         })
         logger.info(f"Total donation amount updated: {new_total} cents (added {amount_cents} cents)")
+
+        # Broadcast money_inserted event via WebSocket
+        try:
+            websocket_service = container.get_websocket_service()
+            message = MoneyInsertedMessage(
+                data=MoneyInsertedData(
+                    amount_cents=amount_cents,
+                    total_amount_cents=new_total,
+                    timestamp=datetime.fromtimestamp(current_timestamp)
+                )
+            )
+            await websocket_service.broadcast_json(message.model_dump(mode='json'))
+            logger.debug(f"WebSocket broadcast sent for money_inserted: amount={amount_cents}, total={new_total}")
+        except Exception as e:
+            logger.error(f"Failed to broadcast money_inserted: {e}", exc_info=True)
 
         # Cancel any pending donation task (new coin resets the timer)
         if self._pending_donation_task and not self._pending_donation_task.done():
@@ -100,11 +118,11 @@ class DonationCoinValidator(GPIOCoinValidator):
 
         # Schedule donation creation after debounce period
         self._pending_donation_task = asyncio.create_task(
-            self._create_donation_after_debounce(container, new_total)
+            self._create_donation_after_debounce(container)
         )
         logger.debug(f"Scheduled donation creation in {self._debounce_seconds} seconds")
 
-    async def _create_donation_after_debounce(self, container: AppContainer, total_cents: int) -> None:
+    async def _create_donation_after_debounce(self, container: AppContainer) -> None:
         """
         Wait for debounce period, then try to create donation with accumulated amount.
 
@@ -113,7 +131,6 @@ class DonationCoinValidator(GPIOCoinValidator):
 
         Args:
             container: Application container
-            total_cents: Total amount in cents to donate (kept for signature compatibility)
         """
         try:
             # Wait for debounce period

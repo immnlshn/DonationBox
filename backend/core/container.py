@@ -13,9 +13,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .config import settings
 from backend.core.database import setup_database
 from backend.services.websocket.WebSocketService import WebSocketService
-from backend.repositories import VoteRepository, CategoryRepository
+from backend.repositories import VoteRepository, CategoryRepository, DonationRepository
 from backend.services.voting.VotingService import VotingService
-from backend.repositories import DonationRepository
+from backend.services.category.CategoryService import CategoryService
 from backend.services.donation.DonationService import DonationService
 from backend.core.state_store import StateStore
 
@@ -36,7 +36,7 @@ class AppContainer:
     self.config = settings
     self.engine = None
     self.sessionmaker = None
-    self.ws_hub = None
+    self.websocket_service = None
     self.state_store = None
 
   def setup(self):
@@ -69,7 +69,7 @@ class AppContainer:
   def _setup_websocket(self):
     """Setup WebSocket hub."""
 
-    self.ws_hub = WebSocketService()
+    self.websocket_service = WebSocketService()
     logger.info("WebSocket hub created")
 
   def _setup_state_store(self):
@@ -87,8 +87,8 @@ class AppContainer:
     logger.info("Disposing AppContainer...")
 
     # Close WebSocket connections
-    if self.ws_hub:
-      await self.ws_hub.close_all_connections()
+    if self.websocket_service:
+      await self.websocket_service.close_all_connections()
 
     # Dispose database engine (using the shared instance)
     if self.engine:
@@ -98,6 +98,28 @@ class AppContainer:
     logger.info("AppContainer disposed")
 
   # Factory methods for services
+
+  def get_websocket_service(self):
+    """
+    Get WebSocketService instance (singleton).
+
+    Returns:
+        WebSocketService instance
+    """
+    return self.websocket_service
+
+  def create_category_service(self, db: AsyncSession):
+    """
+    Create CategoryService instance with repository.
+
+    Args:
+        db: Database session for this service
+
+    Returns:
+        CategoryService instance
+    """
+    category_repo = CategoryRepository(db=db)
+    return CategoryService(category_repo=category_repo)
 
   def create_voting_service(self, db: AsyncSession):
     """
@@ -130,7 +152,7 @@ class AppContainer:
     return DonationService(
         donation_repo=donation_repo,
         voting_service=voting_service,
-        websocket_service=self.ws_hub
+        websocket_service=self.websocket_service
     )
 
 
