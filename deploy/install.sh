@@ -57,9 +57,26 @@ install_system_packages() {
         libgpiod3 \
         python3-libgpiod \
         sqlite3 \
-        libsqlite3-dev \
-        nodejs \
-        npm
+        libsqlite3-dev
+
+    # Install Node.js and npm (optional, skip if already installed or conflicts exist)
+    if command -v node >/dev/null 2>&1 && command -v npm >/dev/null 2>&1; then
+        NODE_VERSION=$(node --version 2>/dev/null || echo "unknown")
+        NPM_VERSION=$(npm --version 2>/dev/null || echo "unknown")
+        log_info "✓ Node.js ${NODE_VERSION} and npm ${NPM_VERSION} are already installed"
+        log_info "  Skipping nodejs/npm installation"
+    else
+        log_info "Attempting to install Node.js and npm..."
+        if apt-get install -y nodejs npm 2>/dev/null; then
+            log_info "✓ Node.js and npm installed successfully"
+        else
+            log_warn "⚠ Could not install nodejs/npm (package conflict or not available)"
+            log_warn "  If you need to build the frontend on this server, install Node.js manually:"
+            log_warn "  https://nodejs.org/ or https://github.com/nodesource/distributions"
+            log_warn "  You can also build the frontend on another machine and copy dist/"
+        fi
+    fi
+
     log_info "System packages installed successfully"
 }
 create_user() {
