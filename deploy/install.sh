@@ -229,19 +229,50 @@ install_frontend() {
 
     # Check if frontend/dist exists
     if [[ ! -d "./frontend/dist" ]]; then
-        log_error "Frontend build not found at ./frontend/dist"
-        log_error "Please build the frontend first:"
-        log_error "  1. Configure deploy/frontend.env.example with your API URLs"
-        log_error "  2. Copy it to frontend/.env"
-        log_error "  3. Run: cd frontend && npm install && npm run build"
-        exit 1
-    fi
+        log_warn "Frontend build not found at ./frontend/dist"
+        log_info "Attempting to build frontend automatically..."
 
-    # Check if frontend was built with environment variables
-    if [[ ! -f "./frontend/.env" ]] && [[ ! -f "./deploy/frontend.env" ]]; then
-        log_warn "⚠ No frontend environment file found!"
-        log_warn "  The frontend may use default values (http://localhost:5000)"
-        log_warn "  For production, configure deploy/frontend.env.example before building"
+        # Check if Node.js and npm are available
+        if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
+            log_error "Node.js and npm are required to build the frontend"
+            log_error "Please install Node.js manually or build the frontend on another machine"
+            exit 1
+        fi
+
+        # Copy environment file to frontend directory
+        if [[ -f "./deploy/frontend.env" ]]; then
+            log_info "Using deploy/frontend.env for build"
+            cp "./deploy/frontend.env" "./frontend/.env"
+        elif [[ -f "./deploy/frontend.env.example" ]]; then
+            log_info "Using deploy/frontend.env.example for build"
+            cp "./deploy/frontend.env.example" "./frontend/.env"
+        else
+            log_warn "No frontend environment file found, using defaults"
+        fi
+
+        # Build frontend
+        log_info "Installing frontend dependencies..."
+        cd frontend
+        npm install
+
+        log_info "Building frontend..."
+        npm run build
+        cd ..
+
+        if [[ ! -d "./frontend/dist" ]]; then
+            log_error "Frontend build failed - dist directory not created"
+            exit 1
+        fi
+
+        log_info "✓ Frontend built successfully"
+    else
+        log_info "Frontend build found at ./frontend/dist"
+
+        # Check if frontend was built with environment variables
+        if [[ ! -f "./frontend/.env" ]] && [[ ! -f "./deploy/frontend.env" ]]; then
+            log_warn "⚠ No frontend environment file found!"
+            log_warn "  The frontend may use default values"
+        fi
     fi
 
     # Copy frontend build
