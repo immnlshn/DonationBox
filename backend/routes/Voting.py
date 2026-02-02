@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import NoResultFound
 
 from backend.schemas.voting import (
-    CategoryInput,
     CreateVoteRequest,
     UpdateVoteRequest,
     VoteResponse,

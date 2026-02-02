@@ -4,7 +4,6 @@ Handles coin insertions and creates donations.
 """
 import asyncio
 import logging
-import time
 from datetime import datetime
 
 from backend.gpio import GPIOEvent
@@ -86,14 +85,14 @@ class DonationCoinValidator(GPIOCoinValidator):
         amount_cents = self._puls_to_cent.get(pulse_count, 0)
         logger.info(f"Coin inserted with {pulse_count} pulses, amount: {amount_cents} cents")
 
-        # Always increment money counter with timestamp
-        current_total = container.state_store.get("total_donation_cents", {}).get("amount", 0) if isinstance(container.state_store.get("total_donation_cents", {}), dict) else 0
-        new_total = current_total + amount_cents
-        current_timestamp = time.time()
-        container.state_store.set("total_donation_cents", {
-            "amount": new_total,
-            "timestamp": current_timestamp
-        })
+        # Atomically increment money counter with timestamp to prevent race conditions
+        # This ensures thread-safe updates even with rapid coin insertions
+        new_total, current_timestamp = container.state_store.increment_nested(
+            key="total_donation_cents",
+            nested_key="amount",
+            amount=amount_cents,
+            timestamp_key="timestamp"
+        )
         logger.info(f"Total donation amount updated: {new_total} cents (added {amount_cents} cents)")
 
         # Broadcast money_inserted event via WebSocket

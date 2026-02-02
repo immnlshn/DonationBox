@@ -29,7 +29,7 @@ class WebSocketService:
             self._connections.add(websocket)
         logger.info(f"WebSocket client connected. Total connections: {len(self._connections)}")
 
-    def disconnect(self, websocket: WebSocket):
+    async def disconnect(self, websocket: WebSocket):
         """
         Remove a WebSocket connection from the pool.
 

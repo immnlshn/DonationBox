@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from .base_repository import BaseRepository
-from backend.models import Vote, Category
+from backend.models import Vote
 from backend.models.associations import vote_category
 
 

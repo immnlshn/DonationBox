@@ -50,6 +50,7 @@ class Settings(BaseSettings):
                 if isinstance(parsed, list):
                     return parsed
             except json.JSONDecodeError:
+                # If JSON decoding fails, fall back to comma-separated or single-origin parsing below.
                 pass
             # Split by comma if it's a comma-separated string
             if "," in v:

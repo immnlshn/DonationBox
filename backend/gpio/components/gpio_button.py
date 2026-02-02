@@ -3,7 +3,7 @@ Abstract GPIO Button base class.
 Handles all GPIO logic - subclasses only need to implement business logic.
 """
 import logging
-from abc import abstractmethod
+
 from gpiozero import Button
 from typing import Optional
 
