@@ -48,7 +48,9 @@ The script performs the following steps:
 
 ### 3. Adjust configuration
 
-After installation:
+After installation, you need to configure both backend and frontend:
+
+#### Backend Configuration
 
 ```bash
 sudo nano /etc/donationbox/.env
@@ -56,9 +58,22 @@ sudo nano /etc/donationbox/.env
 
 Important to change:
 - `SECRET_KEY` - Generate a secure key
-- `ALLOWED_ORIGINS` - Set your domain
+- `ALLOWED_ORIGINS` - Set to `*` for all origins or specify domains
 - `DATABASE_URL` - Adjust if necessary
 - `ENABLE_GPIO` - Set to `true` when on Raspberry Pi
+- `PIN_FACTORY` - Set to `lgpio` on Raspberry Pi with Debian Trixie
+
+#### Frontend Configuration
+
+```bash
+sudo nano /var/www/donationbox/.env
+```
+
+Important to change:
+- `VITE_API_BASE_URL` - Set to your domain (e.g., `https://your-domain.com`)
+- `VITE_WS_URL` - Set to your WebSocket URL (e.g., `wss://your-domain.com/ws`)
+
+**Note:** For local development with Nginx proxy, the defaults (`http://localhost` and `ws://localhost/ws`) should work fine.
 
 ### 4. Restart service
 

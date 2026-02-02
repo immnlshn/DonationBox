@@ -233,17 +233,31 @@ install_frontend() {
 }
 setup_environment() {
     log_info "Setting up environment configuration..."
-    # Copy environment file if it doesn't exist
+
+    # Setup Backend environment
     if [[ ! -f "${ENV_DIR}/.env" ]]; then
-        if [[ -f "./deploy/.env.example" ]]; then
-            cp "./deploy/.env.example" "${ENV_DIR}/.env"
-            log_warn "Environment file created from template at ${ENV_DIR}/.env"
+        if [[ -f "./deploy/backend.env.example" ]]; then
+            cp "./deploy/backend.env.example" "${ENV_DIR}/.env"
+            log_warn "Backend environment file created from template at ${ENV_DIR}/.env"
             log_warn "Please edit ${ENV_DIR}/.env and update the SECRET_KEY and other settings"
         else
-            log_warn "No .env.example found, you need to create ${ENV_DIR}/.env manually"
+            log_warn "No backend.env.example found, you need to create ${ENV_DIR}/.env manually"
         fi
     else
-        log_info "Environment file already exists at ${ENV_DIR}/.env"
+        log_info "Backend environment file already exists at ${ENV_DIR}/.env"
+    fi
+
+    # Setup Frontend environment
+    if [[ ! -f "${WWW_DIR}/.env" ]]; then
+        if [[ -f "./deploy/frontend.env.example" ]]; then
+            cp "./deploy/frontend.env.example" "${WWW_DIR}/.env"
+            log_info "Frontend environment file created from template at ${WWW_DIR}/.env"
+            log_info "Adjust VITE_API_BASE_URL if needed for your domain"
+        else
+            log_warn "No frontend.env.example found"
+        fi
+    else
+        log_info "Frontend environment file already exists at ${WWW_DIR}/.env"
     fi
 }
 set_permissions() {
