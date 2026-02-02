@@ -106,7 +106,7 @@ create_directories() {
     mkdir -p "${DATA_DIR}"
     mkdir -p "${ENV_DIR}"
     mkdir -p "${WWW_DIR}"
-    mkdir -p "${VENV_DIR}"
+    # Note: VENV_DIR will be created by python3 -m venv in install_backend()
     log_info "Directories created"
 }
 install_backend() {
@@ -114,11 +114,15 @@ install_backend() {
     # Copy backend files
     rsync -a --exclude='__pycache__' --exclude='*.pyc' --exclude='database.db' \
         ./backend/ "${APP_DIR}/backend/"
+
     # Create virtual environment
-    if [[ ! -d "${VENV_DIR}" ]]; then
+    if [[ ! -f "${VENV_DIR}/bin/pip" ]]; then
         log_info "Creating Python virtual environment..."
         python3 -m venv "${VENV_DIR}"
+    else
+        log_info "Python virtual environment already exists"
     fi
+
     # Install Python dependencies
     log_info "Installing Python dependencies..."
     "${VENV_DIR}/bin/pip" install --upgrade pip
