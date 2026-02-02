@@ -6,10 +6,10 @@ After=network.target
 Type=simple
 User=donationbox
 Group=donationbox
-WorkingDirectory=/opt/donationbox/
+WorkingDirectory=/opt/donationbox/backend
 Environment="PATH=/opt/donationbox/venv/bin"
 EnvironmentFile=/etc/donationbox/.env
-ExecStart=/opt/donationbox/venv/bin/uvicorn backend.app:app --host 127.0.0.1 --port 8000
+ExecStart=/opt/donationbox/venv/bin/uvicorn app:app --host 127.0.0.1 --port 8000
 Restart=always
 RestartSec=10
 

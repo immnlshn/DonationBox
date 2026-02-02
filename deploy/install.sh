@@ -311,9 +311,14 @@ set_permissions() {
     chown -R "${APP_USER}:${APP_USER}" "${DATA_DIR}"
     chmod 750 "${DATA_DIR}"
 
-    # Environment directory readable by app user
-    chown -R root:"${APP_USER}" "${ENV_DIR}"
-    chmod 640 "${ENV_DIR}/.env" 2>/dev/null || true
+    # Environment directory and .env file readable by app user
+    chown root:"${APP_USER}" "${ENV_DIR}"
+    chmod 750 "${ENV_DIR}"
+
+    if [[ -f "${ENV_DIR}/.env" ]]; then
+        chown root:"${APP_USER}" "${ENV_DIR}/.env"
+        chmod 640 "${ENV_DIR}/.env"
+    fi
 
     log_info "Permissions set successfully"
 }

@@ -239,7 +239,29 @@ sudo -u donationbox /opt/donationbox/venv/bin/uvicorn app:app --host 127.0.0.1 -
 ```bash
 # Re-run migrations
 cd /opt/donationbox/backend
-sudo -u donationbox /opt/donationbox/venv/bin/alembic upgrade head
+sudo -u donationbox bash -c "set -a; source /etc/donationbox/.env; set +a; /opt/donationbox/venv/bin/alembic upgrade head"
+```
+
+### Backend shows "unable to open database file"
+
+This usually means permission problems. Check:
+
+```bash
+# Check if .env file is readable by donationbox user
+sudo -u donationbox cat /etc/donationbox/.env
+
+# Check if data directory is writable
+sudo -u donationbox touch /var/lib/donationbox/test.txt
+sudo rm /var/lib/donationbox/test.txt
+
+# Fix permissions if needed
+sudo chown root:donationbox /etc/donationbox/.env
+sudo chmod 640 /etc/donationbox/.env
+sudo chown -R donationbox:donationbox /var/lib/donationbox
+sudo chmod 750 /var/lib/donationbox
+
+# Restart service
+sudo systemctl restart donationbox
 ```
 
 ### Nginx shows 502 Bad Gateway
