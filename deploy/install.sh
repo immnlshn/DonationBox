@@ -305,8 +305,12 @@ setup_environment() {
 set_permissions() {
     log_info "Setting file permissions..."
 
-    # Application files owned by root
-    chown -R root:root "${APP_DIR}" "${WWW_DIR}"
+    # Application directory - donationbox user needs write access for lgpio temp files
+    chown -R root:"${APP_USER}" "${APP_DIR}"
+    chmod -R 750 "${APP_DIR}"
+
+    # Frontend files owned by root
+    chown -R root:root "${WWW_DIR}"
 
     # Data directory owned by app user (must be writable for database)
     chown -R "${APP_USER}:${APP_USER}" "${DATA_DIR}"

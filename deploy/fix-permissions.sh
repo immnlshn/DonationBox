@@ -36,7 +36,11 @@ log_info "Fixing permissions for DonationBox..."
 
 # Application files owned by root
 log_info "Setting application directory permissions..."
-chown -R root:root "${APP_DIR}" "${WWW_DIR}"
+chown -R root:"${APP_USER}" "${APP_DIR}"
+chmod -R 750 "${APP_DIR}"
+
+# Frontend files owned by root
+chown -R root:root "${WWW_DIR}"
 
 # Data directory owned by app user (must be writable for database)
 log_info "Setting data directory permissions..."
