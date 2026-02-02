@@ -244,7 +244,20 @@ sudo -u donationbox bash -c "set -a; source /etc/donationbox/.env; set +a; /opt/
 
 ### Backend shows "unable to open database file"
 
-This usually means permission problems. Check:
+This usually means permission problems. 
+
+#### Quick fix (Recommended):
+
+```bash
+sudo ./deploy/fix-permissions.sh
+```
+
+This script will:
+- Fix all file permissions
+- Test database access
+- Restart the service automatically
+
+#### Manual fix:
 
 ```bash
 # Check if .env file is readable by donationbox user
@@ -257,11 +270,40 @@ sudo rm /var/lib/donationbox/test.txt
 # Fix permissions if needed
 sudo chown root:donationbox /etc/donationbox/.env
 sudo chmod 640 /etc/donationbox/.env
+sudo chown root:donationbox /etc/donationbox
+sudo chmod 750 /etc/donationbox
 sudo chown -R donationbox:donationbox /var/lib/donationbox
 sudo chmod 750 /var/lib/donationbox
 
 # Restart service
 sudo systemctl restart donationbox
+```
+
+### Backend shows "ModuleNotFoundError: No module named 'lgpio'"
+
+This means the lgpio system package is not installed or the venv was created without `--system-site-packages`.
+
+#### Fix:
+
+```bash
+# Install lgpio system package
+sudo apt-get install -y python3-lgpio
+
+# Recreate venv with system site packages
+sudo rm -rf /opt/donationbox/venv
+sudo -u donationbox python3 -m venv --system-site-packages /opt/donationbox/venv
+
+# Reinstall Python dependencies
+sudo /opt/donationbox/venv/bin/pip install -r /opt/donationbox/backend/requirements.txt
+
+# Restart service
+sudo systemctl restart donationbox
+```
+
+Verify lgpio is available:
+
+```bash
+/opt/donationbox/venv/bin/python -c "import lgpio; print('lgpio version:', lgpio.__version__)"
 ```
 
 ### Nginx shows 502 Bad Gateway

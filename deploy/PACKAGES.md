@@ -11,9 +11,9 @@
 
 ### GPIO Support (Raspberry Pi specific)
 - **gpiod** - Command-line tools for GPIO (gpioinfo, gpioget, gpioset, gpiomon)
-- **libgpiod-dev** - Development headers for GPIO control
-- **libgpiod3** - C library for GPIO control (modern alternative to RPi.GPIO)
-- **python3-libgpiod** - Python bindings for libgpiod
+- **liblgpio1** - Shared library for GPIO control via gpiochip devices
+- **liblgpio-dev** - Development headers for lgpio
+- **python3-lgpio** - Python bindings for lgpio (installed as system package, available in venv via --system-site-packages)
 
 ### Database
 - **sqlite3** - SQLite command-line tool
@@ -34,6 +34,8 @@
 ### GPIO
 - **gpiozero==2.0.1** - High-level GPIO library
 - **colorzero==2.0** - Dependency of gpiozero
+
+**Note:** The `lgpio` Python package is installed as a system package (`python3-lgpio`) and is available in the venv via `--system-site-packages` flag.
 
 ### Backend Framework
 - **fastapi==0.127.0** - Web framework

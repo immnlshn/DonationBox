@@ -40,8 +40,8 @@ check_root() {
 install_system_packages() {
     log_info "Installing system packages..."
     # Update package list
-    apt-get update -qq
-    # Install required packages
+    # Install core packages (always required)
+    log_info "Installing core packages..."
     apt-get install -y \
         python3 \
         python3-venv \
@@ -52,10 +52,11 @@ install_system_packages() {
         rsync \
         curl \
         git \
+        swig \
         gpiod \
-        libgpiod-dev \
-        libgpiod3 \
-        python3-libgpiod \
+        liblgpio1 \
+        liblgpio-dev \
+        python3-lgpio \
         sqlite3 \
         libsqlite3-dev
 
@@ -115,10 +116,10 @@ install_backend() {
     rsync -a --exclude='__pycache__' --exclude='*.pyc' --exclude='database.db' \
         ./backend/ "${APP_DIR}/backend/"
 
-    # Create virtual environment
+    # Create virtual environment with access to system packages (for python3-lgpio)
     if [[ ! -f "${VENV_DIR}/bin/pip" ]]; then
         log_info "Creating Python virtual environment..."
-        python3 -m venv "${VENV_DIR}"
+        python3 -m venv --system-site-packages "${VENV_DIR}"
     else
         log_info "Python virtual environment already exists"
     fi
