@@ -54,5 +54,18 @@ class DonationCreatedMessage(BaseModel):
     data: DonationCreatedData
 
 
+class DonationAbortedData(BaseModel):
+    """Data payload when a donation is aborted due to timeout."""
+    reason: str = Field(..., description="Reason for abortion (e.g., 'category_expired', 'money_expired')")
+    message: str = Field(..., description="Human-readable message")
+    timestamp: datetime = Field(default_factory=datetime.now, description="When the abortion occurred")
+
+
+class DonationAbortedMessage(BaseModel):
+    """WebSocket message sent when a donation process is aborted (e.g., due to timeout)."""
+    type: Literal["donation_aborted"] = "donation_aborted"
+    data: DonationAbortedData
+
+
 # Union type for all possible WebSocket messages
-WebSocketMessage = CategoryChosenMessage | MoneyInsertedMessage | DonationCreatedMessage
+WebSocketMessage = CategoryChosenMessage | MoneyInsertedMessage | DonationCreatedMessage | DonationAbortedMessage

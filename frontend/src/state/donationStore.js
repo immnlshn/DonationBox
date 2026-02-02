@@ -181,6 +181,9 @@ function handleWebSocketMessage(state, msg) {
     case "donation_created":
       return handleDonationCreated(state, msg.data);
 
+    case "donation_aborted":
+      return handleDonationAborted(state, msg.data);
+
     default:
       console.warn("[Store] Unknown message type:", msg.type);
       return state;
@@ -303,3 +306,24 @@ function handleDonationCreated(state, data) {
     sessionDonationCompletedAt: Date.now(),
   };
 }
+
+function handleDonationAborted(state, data) {
+  const reason = data?.reason || "unknown";
+  const message = data?.message || "Session abgelaufen";
+
+  console.warn("[Store] Donation aborted:", reason, "-", message);
+
+  // Reset session to idle
+  return {
+    ...state,
+    sessionState: SESSION_STATES.IDLE,
+    sessionCategoryId: null,
+    sessionCategoryName: null,
+    sessionCategoryChosenAt: null,
+    sessionTotalMoney: 0,
+    sessionLastMoneyAt: null,
+    sessionDonationData: null,
+    sessionDonationCompletedAt: null,
+  };
+}
+

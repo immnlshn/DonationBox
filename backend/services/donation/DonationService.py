@@ -17,6 +17,8 @@ from backend.schemas.websocket import (
     DonationCreatedMessage,
     DonationCreatedData,
     DonationTotals,
+    DonationAbortedMessage,
+    DonationAbortedData,
 )
 
 logger = logging.getLogger(__name__)
@@ -184,6 +186,21 @@ class DonationService:
         # Check category TTL
         if current_time - category_timestamp > ttl_seconds:
             logger.info(f"Category expired (age: {current_time - category_timestamp:.1f}s > {ttl_seconds}s)")
+
+            # Send abort message to clients
+            try:
+                message = DonationAbortedMessage(
+                    data=DonationAbortedData(
+                        reason="category_expired",
+                        message=f"Kategorieauswahl ist abgelaufen ({current_time - category_timestamp:.1f}s)",
+                        timestamp=datetime.now(),
+                    )
+                )
+                await self.websocket_service.broadcast_json(message.model_dump(mode='json'))
+                logger.debug("Sent category_expired abort message to clients")
+            except Exception as e:
+                logger.error(f"Failed to broadcast abort message: {e}", exc_info=True)
+
             state_store.delete("chosen_category")
             return None
 
@@ -225,6 +242,21 @@ class DonationService:
         # Check money TTL
         if current_time - money_timestamp > ttl_seconds:
             logger.info(f"Money expired (age: {current_time - money_timestamp:.1f}s > {ttl_seconds}s)")
+
+            # Send abort message to clients
+            try:
+                message = DonationAbortedMessage(
+                    data=DonationAbortedData(
+                        reason="money_expired",
+                        message=f"Geldeinwurf ist abgelaufen ({current_time - money_timestamp:.1f}s)",
+                        timestamp=datetime.now(),
+                    )
+                )
+                await self.websocket_service.broadcast_json(message.model_dump(mode='json'))
+                logger.debug("Sent money_expired abort message to clients")
+            except Exception as e:
+                logger.error(f"Failed to broadcast abort message: {e}", exc_info=True)
+
             state_store.set("total_donation_cents", {"amount": 0, "timestamp": current_time})
             return None
 
