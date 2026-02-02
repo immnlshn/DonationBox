@@ -221,14 +221,27 @@ except Exception as e:
 }
 install_frontend() {
     log_info "Installing frontend..."
+
     # Check if frontend/dist exists
     if [[ ! -d "./frontend/dist" ]]; then
         log_error "Frontend build not found at ./frontend/dist"
-        log_error "Please run 'npm run build' in the frontend directory first"
+        log_error "Please build the frontend first:"
+        log_error "  1. Configure deploy/frontend.env.example with your API URLs"
+        log_error "  2. Copy it to frontend/.env"
+        log_error "  3. Run: cd frontend && npm install && npm run build"
         exit 1
     fi
+
+    # Check if frontend was built with environment variables
+    if [[ ! -f "./frontend/.env" ]] && [[ ! -f "./deploy/frontend.env" ]]; then
+        log_warn "⚠ No frontend environment file found!"
+        log_warn "  The frontend may use default values (http://localhost:5000)"
+        log_warn "  For production, configure deploy/frontend.env.example before building"
+    fi
+
     # Copy frontend build
     rsync -a --delete ./frontend/dist/ "${WWW_DIR}/"
+
     log_info "Frontend installed successfully"
 }
 setup_environment() {
@@ -236,28 +249,20 @@ setup_environment() {
 
     # Setup Backend environment
     if [[ ! -f "${ENV_DIR}/.env" ]]; then
-        if [[ -f "./deploy/backend.env.example" ]]; then
+        # Try backend.env first, then backend.env.example
+        if [[ -f "./deploy/backend.env" ]]; then
+            cp "./deploy/backend.env" "${ENV_DIR}/.env"
+            log_info "Backend environment file copied from deploy/backend.env"
+        elif [[ -f "./deploy/backend.env.example" ]]; then
             cp "./deploy/backend.env.example" "${ENV_DIR}/.env"
             log_warn "Backend environment file created from template at ${ENV_DIR}/.env"
             log_warn "Please edit ${ENV_DIR}/.env and update the SECRET_KEY and other settings"
         else
-            log_warn "No backend.env.example found, you need to create ${ENV_DIR}/.env manually"
+            log_error "No backend.env or backend.env.example found in deploy/"
+            exit 1
         fi
     else
         log_info "Backend environment file already exists at ${ENV_DIR}/.env"
-    fi
-
-    # Setup Frontend environment
-    if [[ ! -f "${WWW_DIR}/.env" ]]; then
-        if [[ -f "./deploy/frontend.env.example" ]]; then
-            cp "./deploy/frontend.env.example" "${WWW_DIR}/.env"
-            log_info "Frontend environment file created from template at ${WWW_DIR}/.env"
-            log_info "Adjust VITE_API_BASE_URL if needed for your domain"
-        else
-            log_warn "No frontend.env.example found"
-        fi
-    else
-        log_info "Frontend environment file already exists at ${WWW_DIR}/.env"
     fi
 }
 set_permissions() {

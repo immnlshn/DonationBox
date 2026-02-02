@@ -17,16 +17,67 @@ This directory contains all necessary files for deploying the DonationBox applic
 
 ## Installation
 
-### 1. Build frontend
+### 1. Configure environment files
+
+Before building and installing, configure the environment files:
+
+#### Backend Configuration
+
+Edit `deploy/backend.env.example` (or copy it to `deploy/backend.env`):
 
 ```bash
+nano deploy/backend.env.example
+```
+
+Important to change:
+- `SECRET_KEY` - Generate a secure key
+- `ALLOWED_ORIGINS` - Set to `*` for all origins or specify domains
+- `ENABLE_GPIO` - Set to `true` when on Raspberry Pi
+- `PIN_FACTORY` - Set to `lgpio` on Raspberry Pi with Debian Trixie
+
+#### Frontend Configuration
+
+Edit `deploy/frontend.env.example` (or copy it to `deploy/frontend.env`):
+
+```bash
+nano deploy/frontend.env.example
+```
+
+Important to change:
+- `VITE_API_BASE_URL` - Set to your domain (e.g., `https://your-domain.com` or `http://localhost` for local)
+- `VITE_WS_URL` - Set to your WebSocket URL (e.g., `wss://your-domain.com/ws` or `ws://localhost/ws`)
+
+**Note:** These values are baked into the frontend during build time!
+
+### 2. Build frontend
+
+#### Option A: Using the build script (Recommended)
+
+```bash
+./deploy/build-frontend.sh
+```
+
+This script will:
+- Copy `deploy/frontend.env` (or `.env.example`) to `frontend/.env`
+- Install npm dependencies
+- Build the frontend
+
+#### Option B: Manual build
+
+```bash
+# Copy environment configuration
+cp deploy/frontend.env.example frontend/.env
+# Or if you created deploy/frontend.env:
+cp deploy/frontend.env frontend/.env
+
+# Build
 cd frontend
 npm install
 npm run build
 cd ..
 ```
 
-### 2. Run installation
+### 3. Run installation
 
 ```bash
 sudo ./deploy/install.sh
@@ -40,46 +91,27 @@ The script performs the following steps:
 4. ✅ Copies backend code and installs dependencies in venv
 5. ✅ Runs database migrations
 6. ✅ Copies frontend build
-7. ✅ Sets up environment variables
+7. ✅ Sets up backend environment variables
 8. ✅ Sets permissions
 9. ✅ Installs systemd service
 10. ✅ Configures Nginx
 11. ✅ Starts all services
 
-### 3. Adjust configuration
+### 4. Adjust backend configuration (if needed)
 
-After installation, you need to configure both backend and frontend:
-
-#### Backend Configuration
+After installation, you can still adjust backend settings:
 
 ```bash
 sudo nano /etc/donationbox/.env
 ```
 
-Important to change:
-- `SECRET_KEY` - Generate a secure key
-- `ALLOWED_ORIGINS` - Set to `*` for all origins or specify domains
-- `DATABASE_URL` - Adjust if necessary
-- `ENABLE_GPIO` - Set to `true` when on Raspberry Pi
-- `PIN_FACTORY` - Set to `lgpio` on Raspberry Pi with Debian Trixie
-
-#### Frontend Configuration
-
-```bash
-sudo nano /var/www/donationbox/.env
-```
-
-Important to change:
-- `VITE_API_BASE_URL` - Set to your domain (e.g., `https://your-domain.com`)
-- `VITE_WS_URL` - Set to your WebSocket URL (e.g., `wss://your-domain.com/ws`)
-
-**Note:** For local development with Nginx proxy, the defaults (`http://localhost` and `ws://localhost/ws`) should work fine.
-
-### 4. Restart service
+Then restart the service:
 
 ```bash
 sudo systemctl restart donationbox
 ```
+
+**Important:** Frontend configuration cannot be changed after build! You need to rebuild if you want to change API URLs.
 
 ## Directory structure after installation
 
@@ -140,10 +172,9 @@ There are two update scripts:
 #### 1. Full update (with backup) - RECOMMENDED
 
 ```bash
-# Rebuild frontend
-cd frontend
-npm run build
-cd ..
+# Rebuild frontend (if needed)
+./deploy/build-frontend.sh
+# Or manually: cd frontend && npm run build && cd ..
 
 # Run update (automatically creates backup)
 sudo ./deploy/update.sh
@@ -161,10 +192,9 @@ Features:
 #### 2. Quick update (without backup)
 
 ```bash
-# Rebuild frontend
-cd frontend
-npm run build
-cd ..
+# Rebuild frontend (if needed)
+./deploy/build-frontend.sh
+# Or manually: cd frontend && npm run build && cd ..
 
 # Quick update
 sudo ./deploy/quick-update.sh
