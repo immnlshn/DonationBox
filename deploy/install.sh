@@ -152,20 +152,21 @@ validate_and_run_migrations() {
 
     # Check current migration status
     log_info "Checking current migration status..."
-    if sudo -u "${APP_USER}" "${VENV_DIR}/bin/alembic" current >/dev/null 2>&1; then
-        CURRENT_REV=$(sudo -u "${APP_USER}" "${VENV_DIR}/bin/alembic" current 2>/dev/null | grep -oP '[a-f0-9]{12}' | head -n 1 || echo "none")
+    if sudo -u "${APP_USER}" bash -c "set -a; source '${ENV_DIR}/.env'; set +a; '${VENV_DIR}/bin/alembic' current" >/dev/null 2>&1; then
+        CURRENT_REV=$(sudo -u "${APP_USER}" bash -c "set -a; source '${ENV_DIR}/.env'; set +a; '${VENV_DIR}/bin/alembic' current" 2>/dev/null | grep -oP '[a-f0-9]{12}' | head -n 1 || echo "none")
         log_info "Current revision: ${CURRENT_REV:-none}"
     else
         log_warn "Could not determine current migration state"
     fi
 
     # Get target revision (head)
-    HEAD_REV=$(sudo -u "${APP_USER}" "${VENV_DIR}/bin/alembic" heads 2>/dev/null | grep -oP '[a-f0-9]{12}' | head -n 1 || echo "unknown")
+    HEAD_REV=$(sudo -u "${APP_USER}" bash -c "set -a; source '${ENV_DIR}/.env'; set +a; '${VENV_DIR}/bin/alembic' heads" 2>/dev/null | grep -oP '[a-f0-9]{12}' | head -n 1 || echo "unknown")
     log_info "Target revision: ${HEAD_REV:-unknown}"
 
-    # Run migrations as app user
+    # Run migrations as app user with environment variables loaded
     log_info "Running database migrations to head..."
-    if sudo -u "${APP_USER}" "${VENV_DIR}/bin/alembic" upgrade head 2>&1 | tee /tmp/alembic_upgrade.log; then
+    # Load environment variables from .env file and pass them to alembic
+    if sudo -u "${APP_USER}" bash -c "set -a; source '${ENV_DIR}/.env'; set +a; '${VENV_DIR}/bin/alembic' upgrade head" 2>&1 | tee /tmp/alembic_upgrade.log; then
         log_info "✓ Migrations completed successfully"
     else
         log_error "✗ Migration failed!"
@@ -177,7 +178,7 @@ validate_and_run_migrations() {
 
     # Verify final state
     log_info "Verifying migration state..."
-    FINAL_REV=$(sudo -u "${APP_USER}" "${VENV_DIR}/bin/alembic" current 2>/dev/null | grep -oP '[a-f0-9]{12}' | head -n 1 || echo "none")
+    FINAL_REV=$(sudo -u "${APP_USER}" bash -c "set -a; source '${ENV_DIR}/.env'; set +a; '${VENV_DIR}/bin/alembic' current" 2>/dev/null | grep -oP '[a-f0-9]{12}' | head -n 1 || echo "none")
 
     if [[ -n "$FINAL_REV" ]] && [[ "$FINAL_REV" != "none" ]]; then
         log_info "✓ Database is at revision: ${FINAL_REV}"
