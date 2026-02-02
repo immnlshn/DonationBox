@@ -52,10 +52,10 @@ install_system_packages() {
         rsync \
         curl \
         git \
-        libgpiod2 \
-        libgpiod-dev \
-        python3-libgpiod \
         gpiod \
+        libgpiod-dev \
+        libgpiod3 \
+        python3-libgpiod \
         sqlite3 \
         libsqlite3-dev \
         nodejs \

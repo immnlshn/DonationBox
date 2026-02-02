@@ -10,10 +10,10 @@
 - **build-essential** - GCC, G++, Make and other build tools (for native Python extensions)
 
 ### GPIO Support (Raspberry Pi specific)
-- **libgpiod2** - C library for GPIO control (modern alternative to RPi.GPIO)
-- **libgpiod-dev** - Development headers for libgpiod
-- **python3-libgpiod** - Python bindings for libgpiod
 - **gpiod** - Command-line tools for GPIO (gpioinfo, gpioget, gpioset, gpiomon)
+- **libgpiod-dev** - Development headers for GPIO control
+- **libgpiod3** - C library for GPIO control (modern alternative to RPi.GPIO)
+- **python3-libgpiod** - Python bindings for libgpiod
 
 ### Database
 - **sqlite3** - SQLite command-line tool
