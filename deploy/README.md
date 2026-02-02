@@ -315,11 +315,17 @@ Verify lgpio is available:
 
 ```bash
 # Reset permissions
-sudo chown -R root:root /opt/donationbox /var/www/donationbox
+sudo chown -R donationbox:donationbox /opt/donationbox
+sudo chmod -R 755 /opt/donationbox
+sudo chown -R root:root /var/www/donationbox
 sudo chown -R donationbox:donationbox /var/lib/donationbox
+sudo chmod 750 /var/lib/donationbox
 sudo chown -R root:donationbox /etc/donationbox
 sudo chmod 640 /etc/donationbox/.env
+sudo systemctl restart donationbox
 ```
+
+**Note:** The `donationbox` user needs to be the owner of `/opt/donationbox` to allow lgpio to create temporary files there.
 
 ## Uninstallation
 

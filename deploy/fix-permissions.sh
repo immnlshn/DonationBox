@@ -34,10 +34,10 @@ fi
 
 log_info "Fixing permissions for DonationBox..."
 
-# Application files owned by root
+# Application files owned by donationbox user (needs write access for lgpio)
 log_info "Setting application directory permissions..."
-chown -R root:"${APP_USER}" "${APP_DIR}"
-chmod -R 750 "${APP_DIR}"
+chown -R "${APP_USER}":"${APP_USER}" "${APP_DIR}"
+chmod -R 755 "${APP_DIR}"
 
 # Frontend files owned by root
 chown -R root:root "${WWW_DIR}"
