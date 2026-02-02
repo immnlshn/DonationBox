@@ -1,0 +1,24 @@
+[Unit]
+Description=DonationBox FastAPI Application
+After=network.target
+
+[Service]
+Type=simple
+User=donationbox
+Group=donationbox
+WorkingDirectory=/opt/donationbox/backend
+Environment="PATH=/opt/donationbox/venv/bin"
+EnvironmentFile=/etc/donationbox/.env
+ExecStart=/opt/donationbox/venv/bin/uvicorn app:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=10
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/donationbox
+
+[Install]
+WantedBy=multi-user.target
