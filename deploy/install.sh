@@ -152,20 +152,20 @@ validate_and_run_migrations() {
 
     # Check current migration status
     log_info "Checking current migration status..."
-    if "${VENV_DIR}/bin/alembic" current >/dev/null 2>&1; then
-        CURRENT_REV=$("${VENV_DIR}/bin/alembic" current 2>/dev/null | grep -oP '[a-f0-9]{12}' | head -n 1 || echo "none")
+    if sudo -u "${APP_USER}" "${VENV_DIR}/bin/alembic" current >/dev/null 2>&1; then
+        CURRENT_REV=$(sudo -u "${APP_USER}" "${VENV_DIR}/bin/alembic" current 2>/dev/null | grep -oP '[a-f0-9]{12}' | head -n 1 || echo "none")
         log_info "Current revision: ${CURRENT_REV:-none}"
     else
         log_warn "Could not determine current migration state"
     fi
 
     # Get target revision (head)
-    HEAD_REV=$("${VENV_DIR}/bin/alembic" heads 2>/dev/null | grep -oP '[a-f0-9]{12}' | head -n 1 || echo "unknown")
+    HEAD_REV=$(sudo -u "${APP_USER}" "${VENV_DIR}/bin/alembic" heads 2>/dev/null | grep -oP '[a-f0-9]{12}' | head -n 1 || echo "unknown")
     log_info "Target revision: ${HEAD_REV:-unknown}"
 
-    # Run migrations
+    # Run migrations as app user
     log_info "Running database migrations to head..."
-    if "${VENV_DIR}/bin/alembic" upgrade head 2>&1 | tee /tmp/alembic_upgrade.log; then
+    if sudo -u "${APP_USER}" "${VENV_DIR}/bin/alembic" upgrade head 2>&1 | tee /tmp/alembic_upgrade.log; then
         log_info "✓ Migrations completed successfully"
     else
         log_error "✗ Migration failed!"
@@ -177,7 +177,7 @@ validate_and_run_migrations() {
 
     # Verify final state
     log_info "Verifying migration state..."
-    FINAL_REV=$("${VENV_DIR}/bin/alembic" current 2>/dev/null | grep -oP '[a-f0-9]{12}' | head -n 1 || echo "none")
+    FINAL_REV=$(sudo -u "${APP_USER}" "${VENV_DIR}/bin/alembic" current 2>/dev/null | grep -oP '[a-f0-9]{12}' | head -n 1 || echo "none")
 
     if [[ -n "$FINAL_REV" ]] && [[ "$FINAL_REV" != "none" ]]; then
         log_info "✓ Database is at revision: ${FINAL_REV}"
@@ -190,7 +190,7 @@ validate_and_run_migrations() {
         log_info "✓ Database file exists: ${DATA_DIR}/database.db"
 
         # Try to query database to verify it's valid
-        if "${VENV_DIR}/bin/python" -c "
+        if sudo -u "${APP_USER}" "${VENV_DIR}/bin/python" -c "
 import sqlite3
 import sys
 try:
@@ -271,13 +271,18 @@ setup_environment() {
 }
 set_permissions() {
     log_info "Setting file permissions..."
+
     # Application files owned by root
     chown -R root:root "${APP_DIR}" "${WWW_DIR}"
-    # Data directory owned by app user
+
+    # Data directory owned by app user (must be writable for database)
     chown -R "${APP_USER}:${APP_USER}" "${DATA_DIR}"
+    chmod 750 "${DATA_DIR}"
+
     # Environment directory readable by app user
     chown -R root:"${APP_USER}" "${ENV_DIR}"
     chmod 640 "${ENV_DIR}/.env" 2>/dev/null || true
+
     log_info "Permissions set successfully"
 }
 install_systemd_service() {
@@ -367,10 +372,10 @@ main() {
     create_user
     create_directories
     install_backend
-    validate_and_run_migrations
-    install_frontend
     setup_environment
     set_permissions
+    validate_and_run_migrations
+    install_frontend
     install_systemd_service
     install_nginx_config
     start_services
