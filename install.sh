@@ -34,17 +34,34 @@ echo -e "${GREEN}╚════════════════════
 #####################################
 
 log "System-Pakete installieren..."
+
+# Alte NodeSource-Repos entfernen falls vorhanden
+sudo rm -f /etc/apt/sources.list.d/nodesource.list
+sudo rm -f /etc/apt/keyrings/nodesource.gpg
+
+# Konfligierende Pakete entfernen
+sudo apt-get remove -y nodejs npm nodejs-legacy 2>/dev/null || true
+sudo apt-get autoremove -y
+
+# System aktualisieren
 sudo apt-get update
+
+# Python und basics installieren
+log "Installiere Python, nginx, sqlite..."
 sudo apt-get install -y \
     python3 \
     python3-pip \
     python3-venv \
     python3-dev \
     python3-lgpio \
-    nodejs \
-    npm \
     nginx \
-    sqlite3
+    sqlite3 \
+    curl
+
+# Node.js via nodesource
+log "Installiere Node.js 20.x..."
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
 
 
 #####################################
