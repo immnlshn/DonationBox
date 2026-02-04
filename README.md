@@ -183,30 +183,43 @@ The system includes a mock GPIO mode that allows full development and testing wi
 
 ```
 DonationBox/
-├── backend/                  # FastAPI backend
-│   ├── alembic/             # Database migrations
-│   ├── database/            # Database configuration and repositories
-│   │   ├── queries/         # Database query utilities
-│   │   └── repositories/    # Data access layer
-│   ├── models/              # SQLAlchemy models
-│   ├── routes/              # API endpoints
-│   ├── services/            # Business logic
-│   │   ├── donation/        # Donation management
-│   │   ├── gpio/            # GPIO control
-│   │   ├── voting/          # Voting logic
-│   │   └── websocket/       # WebSocket handling
-│   ├── app.py               # Application entry point
-│   ├── settings.py          # Configuration management
-│   └── requirements.txt     # Python dependencies
+├── backend/                               # FastAPI backend
+│   ├── alembic/                           # Database migrations (Alembic)
+│   │   └── versions/                      # Migration versions (schema history)
+│   ├── core/                              # Core infrastructure (config, DI, lifecycle, logging)
+│   ├── gpio/                              # Raspberry Pi GPIO integration
+│   │   └── components/                    # GPIO hardware components (button, coin validator, etc.)
+│   ├── models/                            # SQLAlchemy ORM models
+│   ├── repositories/                      # Data access layer (CRUD + queries)
+│   ├── routes/                            # API endpoints (REST + WebSocket)
+│   ├── schemas/                           # Pydantic schemas (request/response DTOs)
+│   ├── services/                          # Business logic layer
+│   │   ├── category/                      # Category management logic
+│   │   ├── donation/                      # Donation creation + aggregation + events
+│   │   ├── voting/                        # Voting logic + result aggregation
+│   │   └── websocket/                     # WebSocket connections + broadcasting
+│   ├── app.py                             # Application entry point (FastAPI app)
+│   └── requirements.txt                   # Python dependencies
 │
-└── frontend/                # React frontend
-    ├── src/
-    │   ├── assets/          # Images, icons, etc.
-    │   ├── components/      # React components
-    │   ├── App.jsx          # Main application component
-    │   └── main.jsx         # Application entry point
-    ├── package.json         # Node.js dependencies
-    └── vite.config.js       # Vite configuration
+├── deploy/                                # Deployment assets
+│   ├── docker/                            # Docker build + runtime configs
+│   │   ├── backend/                       # Backend container setup
+│   │   └── frontend/                      # Frontend container + nginx config
+│   └── raspberrypi/                       # Raspberry Pi setup (kiosk + services)
+│       └── systemd/                       # Systemd service units (autostart)
+│
+└── frontend/                              # React frontend (Vite)
+    ├── public/                            # Public static files
+    ├── src/                               # Frontend source code
+    │   ├── assets/                        # Images, icons, etc.
+    │   ├── components/                    # UI components
+    │   ├── services/                      # REST + WebSocket clients
+    │   ├── state/                         # Global state management
+    │   ├── App.jsx                        # Main application component
+    │   ├── AppRouter.jsx                  # Client-side routing
+    │   └── main.jsx                       # Application entry point
+    ├── package.json                       # Node.js dependencies & scripts
+    └── vite.config.js                     # Vite configuration
 ```
 
 ## 🔧 Configuration
