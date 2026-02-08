@@ -55,84 +55,12 @@ The project consists of two main components:
   - Node.js 16+ and npm/yarn
   - Modern web browser
 
-### Installation
+### ⚙️ Installation
 
-#### Backend Setup
+The full installation and deployment process is documented in the dedicated [README](deploy/README.md) inside the `deploy/` directory.
+This includes instructions for configuring the Raspberry Pi environment, installing dependencies, setting environment variables, and running the required deployment scripts.
 
-1. **Navigate to the backend directory**:
-   ```bash
-   cd backend
-   ```
-
-2. **Create and activate a virtual environment**:
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-   ```
-
-3. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Configure environment** (optional):
-   Create a `.env` file in the backend directory:
-   ```env
-   # App Configuration
-   APP_NAME="DonationBox API"
-   ENV=development
-   DEBUG=true
-   LOG_LEVEL=INFO
-   
-   # Database
-   DATABASE_URL=sqlite:///./backend/database.db
-   
-   # CORS (adjust for your frontend URL)
-   ALLOWED_ORIGINS=["http://localhost:5173", "http://localhost:3000"]
-   
-   # GPIO Settings
-   ENABLE_GPIO=false
-   PIN_FACTORY=mock
-   ```
-
-5. **Initialize the database**:
-   ```bash
-   # Run migrations
-   alembic upgrade head
-   ```
-
-6. **Start the backend server**:
-   ```bash
-   # From the project root
-   python -m uvicorn backend.app:app --reload --host 0.0.0.0 --port 8000
-   ```
-
-   The API will be available at `http://localhost:8000`
-   - API Documentation: `http://localhost:8000/docs`
-   - Alternative API Docs: `http://localhost:8000/redoc`
-
-#### Frontend Setup
-
-1. **Navigate to the frontend directory**:
-   ```bash
-   cd frontend
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
-
-3. **Start the development server**:
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
-
-   The frontend will be available at `http://localhost:5173`
+Please follow the steps described in the [deployment README](deploy/README.md) and execute the provided scripts as outlined to ensure a correct and reproducible installation.
 
 ## 📖 API Documentation
 
@@ -183,30 +111,37 @@ The system includes a mock GPIO mode that allows full development and testing wi
 
 ```
 DonationBox/
-├── backend/                  # FastAPI backend
-│   ├── alembic/             # Database migrations
-│   ├── database/            # Database configuration and repositories
-│   │   ├── queries/         # Database query utilities
-│   │   └── repositories/    # Data access layer
-│   ├── models/              # SQLAlchemy models
-│   ├── routes/              # API endpoints
-│   ├── services/            # Business logic
-│   │   ├── donation/        # Donation management
-│   │   ├── gpio/            # GPIO control
-│   │   ├── voting/          # Voting logic
-│   │   └── websocket/       # WebSocket handling
-│   ├── app.py               # Application entry point
-│   ├── settings.py          # Configuration management
-│   └── requirements.txt     # Python dependencies
+├── backend/                               # FastAPI backend
+│   ├── alembic/                           # Database migrations (Alembic)
+│   │   └── versions/                      # Migration versions (schema history)
+│   ├── core/                              # Core infrastructure (config, DI, lifecycle, logging)
+│   ├── gpio/                              # Raspberry Pi GPIO integration
+│   │   └── components/                    # GPIO hardware components (button, coin validator, etc.)
+│   ├── models/                            # SQLAlchemy ORM models
+│   ├── repositories/                      # Data access layer (CRUD + queries)
+│   ├── routes/                            # API endpoints (REST + WebSocket)
+│   ├── schemas/                           # Pydantic schemas (request/response DTOs)
+│   ├── services/                          # Business logic layer
+│   │   ├── category/                      # Category management logic
+│   │   ├── donation/                      # Donation creation + aggregation + events
+│   │   ├── voting/                        # Voting logic + result aggregation
+│   │   └── websocket/                     # WebSocket connections + broadcasting
+│   ├── app.py                             # Application entry point (FastAPI app)
+│   └── requirements.txt                   # Python dependencies
 │
-└── frontend/                # React frontend
-    ├── src/
-    │   ├── assets/          # Images, icons, etc.
-    │   ├── components/      # React components
-    │   ├── App.jsx          # Main application component
-    │   └── main.jsx         # Application entry point
-    ├── package.json         # Node.js dependencies
-    └── vite.config.js       # Vite configuration
+├── deploy/                                # Deployment assets
+└── frontend/                              # React frontend (Vite)
+    ├── public/                            # Public static files
+    ├── src/                               # Frontend source code
+    │   ├── assets/                        # Images, icons, etc.
+    │   ├── components/                    # UI components
+    │   ├── services/                      # REST + WebSocket clients
+    │   ├── state/                         # Global state management
+    │   ├── App.jsx                        # Main application component
+    │   ├── AppRouter.jsx                  # Client-side routing
+    │   └── main.jsx                       # Application entry point
+    ├── package.json                       # Node.js dependencies & scripts
+    └── vite.config.js                     # Vite configuration
 ```
 
 ## 🔧 Configuration
@@ -298,31 +233,11 @@ npm run lint
 
 6. **Serve frontend with nginx or serve static files through FastAPI**
 
-## 🧪 Testing
-
-### Backend Testing
-```bash
-cd backend
-# Add your test commands here
-# pytest tests/
-```
-
-### Frontend Testing
-```bash
-cd frontend
-# Add your test commands here
-# npm test
-```
-
 ## 📝 License
 
 [![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 This project is licensed under the [MIT License](LICENSE). You are free to use, modify, and distribute this software under the conditions stated in the LICENSE file.
-
-## 🤝 Contributing
-
-[Add contribution guidelines here]
 
 ## 📧 Contact
 
