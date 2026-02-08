@@ -73,10 +73,20 @@ export default function App() {
       </header>
 
       <main className="stack">
+          <section className="card card-cta">
+              <CallToDonate text={callToActionText} />
+          </section>
         <section className="card card-hero">
           {/* Comes from GET /voting/active if available; otherwise a generic fallback */}
           <DonationQuestion text={questionText} />
         </section>
+          <section className="card">
+              <div className="section-head">
+                  <h2 className="section-title">Aktueller Stand</h2>
+              </div>
+
+              <VotingResultsChart results={results} />
+          </section>
 
         <section className="card">
           <DonationSummary recentDonations={recentDonations} />
@@ -95,18 +105,10 @@ export default function App() {
           </div>
         </section>
 
-        <section className="card card-cta">
-          <CallToDonate text={callToActionText} />
-        </section>
 
-        <section className="card">
-          <div className="section-head">
-            <h2 className="section-title">Aktueller Stand</h2>
-          </div>
 
-          {/* Always shows bars (0%) because results are never empty */}
-          <VotingResultsChart results={results} />
-        </section>
+
+
       </main>
     </div>
   );
