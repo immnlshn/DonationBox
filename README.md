@@ -198,6 +198,9 @@ pylint backend/
 ```bash
 cd frontend
 
+# Install dependencies
+npm install
+
 # Start development server
 npm run dev
 
@@ -211,39 +214,6 @@ npm run preview
 npm run lint
 ```
 
-## 🚢 Deployment
-
-### Raspberry Pi Deployment
-
-1. **Prepare the Raspberry Pi**:
-   ```bash
-   sudo apt-get update
-   sudo apt-get install python3-pip python3-venv git
-   ```
-
-2. **Clone and setup**:
-   ```bash
-   git clone <repository-url>
-   cd DonationBox
-   ```
-
-3. **Configure for production**:
-   - Set `ENABLE_GPIO=true`
-   - Set `PIN_FACTORY=native`
-   - Configure appropriate CORS origins
-   - Set `DEBUG=false`
-
-4. **Run with systemd** (recommended):
-   Create a systemd service file at `/etc/systemd/system/donationbox.service`
-
-5. **Build frontend**:
-   ```bash
-   cd frontend
-   npm run build
-   ```
-
-6. **Serve frontend with nginx or serve static files through FastAPI**
-
 ## 📝 License
 
 [![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -255,7 +225,7 @@ This project is licensed under the [MIT License](LICENSE). You are free to use, 
 This project is part of a university group project at the **University of Cologne** and the **Cologne Institute for Information Systems (CIIS)**, conducted within the course [**Sustainable Digital Innovation Lab (SDIL)**](https://ciis.uni-koeln.de/en/teaching/master-and-phd-courses/sustainable-digital-innovation-lab) by the following contributors:
 
 - **Immanuel Sohn**:<br>
-  📧 [isohn@smail.uni-koeln.de](mailto:isohn@smail.uni-koeln.de)
+  📧 [isohn1@smail.uni-koeln.de](mailto:isohn@smail.uni-koeln.de)
 - **Chiara Döring**:<br>
   📧 [cdoerin1@smail.uni-koeln.de](mailto:cdoerin1@smail.uni-koeln.de)
 - **Luca Schröder**:<br>
