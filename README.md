@@ -79,28 +79,14 @@ Once the backend is running, visit:
 - Swagger UI: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
 
-### Key Endpoints
-
-#### Voting
-- `GET /api/voting/` - Get the current active vote
-- `GET /api/voting/{vote_id}/totals` - Get donation totals for a vote
-
-#### WebSocket
-- `WS /api/ws` - WebSocket connection for real-time updates
-
-#### Debug (Development Only)
-- `POST /api/debug/gpio-pulse` - Trigger a GPIO pulse simulation
-- `GET /api/debug/gpio-status` - Check GPIO service status
-
 ## 🎮 Usage
 
-### Creating a Voting Campaign
+### Creating & Managing a Voting Campaign
 
-1. Use the database or API to create a new vote with categories
-2. Set the vote as active
-3. The frontend will automatically display the active vote
-4. Donors can select a category and make their donation
-5. Results update in real-time for all connected clients
+Once the frontend is running, visit:
+`http://localhost:8000/management`
+
+This leads to a management site, where active votes can be started and managed.
 
 ### Hardware Integration
 
