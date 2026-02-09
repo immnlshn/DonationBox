@@ -12,6 +12,17 @@ DonationBox is a full-stack application designed for physical donation boxes tha
 - **Visual Dashboard**: Modern React-based frontend displaying voting results and donation statistics
 - **Mock Mode**: Full development support without physical hardware
 
+## 🔩 Hardware Reproducibility
+
+This project is designed with reproducability in mind. A detailed, step-by-step guide for rebuilding the physical dontation box is available on Hackster.
+
+The Hackster project documents the complete hardware setup, including required components, wiring diagram, enclosure construction and assembly instructions.
+
+To reproduce the hardware setup pf this project, please follow the instructions provided in this guide:<br>
+➡️[**Hardware build guide on Hackster**](https://www.hackster.io/543837/charitable-voting-machine-e3706b)
+
+This separation allows the GitHub repository to focus on software development and deployment, while all hardware-related documentation is maintained in a dedicated and easily accessible format.
+
 ## 🏗️ Architecture
 
 The project consists of two main components:
