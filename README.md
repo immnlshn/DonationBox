@@ -84,7 +84,7 @@ Once the backend is running, visit:
 ### Creating & Managing a Voting Campaign
 
 Once the frontend is running, visit:
-`http://localhost:8000/management`
+`http://localhost:5173/management`
 
 This leads to a management site, where active votes can be started and managed.
 
